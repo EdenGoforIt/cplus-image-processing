@@ -76,15 +76,15 @@ src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: src/CMakeFiles/camera_
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: src/CMakeFiles/camera_with_fps.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -MF CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -c /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp
+	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -MF CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -c /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp
 
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp > CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
+	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp > CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
 
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
+	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
 
 # Object files for target camera_with_fps
 camera_with_fps_OBJECTS = \
