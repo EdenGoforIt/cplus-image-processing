@@ -1,7 +1,3 @@
-# 731 OpenCV Camera Project
-
-// ...existing code...
-
 ## How to Build and Run the Project
 
 ### Prerequisites
