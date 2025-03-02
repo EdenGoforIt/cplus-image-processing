@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp" "src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o" "gcc" "src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d"
+  "/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp" "src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o" "gcc" "src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

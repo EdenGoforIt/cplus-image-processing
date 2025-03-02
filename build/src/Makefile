@@ -57,10 +57,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main
+CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build
+CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,14 +87,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src//CMakeFiles/progress.marks
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles 0
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src//CMakeFiles/progress.marks
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -103,22 +103,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CMakeFiles/camera_with_fps.dir/rule:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/camera_with_fps.dir/rule
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/camera_with_fps.dir/rule
 .PHONY : src/CMakeFiles/camera_with_fps.dir/rule
 
 # Convenience name for target.
@@ -127,7 +127,7 @@ camera_with_fps: src/CMakeFiles/camera_with_fps.dir/rule
 
 # fast build rule for target.
 camera_with_fps/fast:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/build
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/build
 .PHONY : camera_with_fps/fast
 
 camera_with_fps.o: camera_with_fps.cpp.o
@@ -135,7 +135,7 @@ camera_with_fps.o: camera_with_fps.cpp.o
 
 # target to build an object file
 camera_with_fps.cpp.o:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o
 .PHONY : camera_with_fps.cpp.o
 
 camera_with_fps.i: camera_with_fps.cpp.i
@@ -143,7 +143,7 @@ camera_with_fps.i: camera_with_fps.cpp.i
 
 # target to preprocess a source file
 camera_with_fps.cpp.i:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
 .PHONY : camera_with_fps.cpp.i
 
 camera_with_fps.s: camera_with_fps.cpp.s
@@ -151,7 +151,7 @@ camera_with_fps.s: camera_with_fps.cpp.s
 
 # target to generate assembly for a file
 camera_with_fps.cpp.s:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
 .PHONY : camera_with_fps.cpp.s
 
 # Help Target
@@ -177,6 +177,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

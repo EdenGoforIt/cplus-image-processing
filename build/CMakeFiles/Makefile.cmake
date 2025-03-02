@@ -7,11 +7,11 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
-  "/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/CMakeLists.txt"
+  "/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/CMakeLists.txt"
   "CMakeFiles/3.31.4/CMakeCCompiler.cmake"
   "CMakeFiles/3.31.4/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.31.4/CMakeSystem.cmake"
-  "/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/CMakeLists.txt"
+  "/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/CMakeLists.txt"
   "/opt/homebrew/lib/cmake/opencv4/OpenCVConfig-version.cmake"
   "/opt/homebrew/lib/cmake/opencv4/OpenCVConfig.cmake"
   "/opt/homebrew/lib/cmake/opencv4/OpenCVModules-release.cmake"

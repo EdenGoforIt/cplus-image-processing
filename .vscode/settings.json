@@ -1,1 +1,23 @@
-{}
+{
+  "files.associations": {
+    "*.react.js": "javascriptreact",
+    "*.jsx": "javascriptreact",
+    "*.js": "javascriptreact",
+    "ostream": "cpp"
+  },
+  "cmake.configureSettings": {
+    "OpenCV_DIR": "/opt/homebrew/Cellar/opencv/4.11.0"
+  },
+  "cmake.configureOnOpen": true,
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/**",
+    "/opt/homebrew/Cellar/opencv/4.11.0/include/opencv4",
+    "/opt/homebrew/Cellar/opencv/4.11.0/include"
+  ],
+  "cmake.generator": "Unix Makefiles",
+  "cmake.debugConfig": {
+    "args": [],
+    "cwd": "${workspaceFolder}"
+  }
+}

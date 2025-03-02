@@ -1,4 +1,4 @@
-# Install script for directory: /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src
+# Install script for directory: /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,6 +40,6 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src/install_local_manifest.txt"
+  file(WRITE "/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

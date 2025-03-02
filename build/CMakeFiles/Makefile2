@@ -54,10 +54,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main
+CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build
+CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -104,14 +104,14 @@ src/clean: src/CMakeFiles/camera_with_fps.dir/clean
 src/CMakeFiles/camera_with_fps.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles --progress-num=1,2 "Built target camera_with_fps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles --progress-num=1,2 "Built target camera_with_fps"
 .PHONY : src/CMakeFiles/camera_with_fps.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/camera_with_fps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/camera_with_fps.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles 0
 .PHONY : src/CMakeFiles/camera_with_fps.dir/rule
 
 # Convenience name for target.
@@ -121,7 +121,7 @@ camera_with_fps: src/CMakeFiles/camera_with_fps.dir/rule
 # codegen rule for target.
 src/CMakeFiles/camera_with_fps.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/camera_with_fps.dir/build.make src/CMakeFiles/camera_with_fps.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles --progress-num=1,2 "Finished codegen for target camera_with_fps"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles --progress-num=1,2 "Finished codegen for target camera_with_fps"
 .PHONY : src/CMakeFiles/camera_with_fps.dir/codegen
 
 # clean rule for target.

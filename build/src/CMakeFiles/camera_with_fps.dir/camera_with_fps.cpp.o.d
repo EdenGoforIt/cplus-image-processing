@@ -1,5 +1,5 @@
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: \
-  /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp \
+  /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/stdio.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__config_site \

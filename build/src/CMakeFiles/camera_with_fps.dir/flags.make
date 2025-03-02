@@ -4,7 +4,7 @@
 # compile CXX with /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src -I/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/include -isystem /opt/homebrew/Cellar/opencv/4.11.0/include/opencv4
+CXX_INCLUDES = -I/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src -I/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/include -isystem /opt/homebrew/Cellar/opencv/4.11.0/include/opencv4
 
 CXX_FLAGSarm64 = -std=gnu++11 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk -O2 -std=c++17 -Wall -Wextra -pedantic -fvisibility=hidden -pthread -mcpu=apple-m1 -Werror=return-type
 

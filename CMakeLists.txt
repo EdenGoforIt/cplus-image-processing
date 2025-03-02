@@ -11,12 +11,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(OpenCV REQUIRED)
 
+
+# Properly set OpenCV paths for Mac For DEBUG
+set(OpenCV_DIR "/opt/homebrew/Cellar/opencv")
+set(OpenCV_DIR "/opt/homebrew/Cellar/opencv/4.11.0") 
+
+
 #########################################################
 # Include directories
 #########################################################
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/include") 
+
 
 #########################################################
 # Set Compiler Flags

@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main
+CMAKE_SOURCE_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build
+CMAKE_BINARY_DIR = /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build
 
 # Include any dependencies generated for this target.
 include src/CMakeFiles/camera_with_fps.dir/depend.make
@@ -73,18 +73,18 @@ src/CMakeFiles/camera_with_fps.dir/codegen:
 .PHONY : src/CMakeFiles/camera_with_fps.dir/codegen
 
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: src/CMakeFiles/camera_with_fps.dir/flags.make
-src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp
+src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o: src/CMakeFiles/camera_with_fps.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -MF CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -c /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o"
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -MF CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o.d -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.o -c /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp
 
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp > CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp > CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.i
 
 src/CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src/camera_with_fps.cpp -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src/camera_with_fps.cpp -o CMakeFiles/camera_with_fps.dir/camera_with_fps.cpp.s
 
 # Object files for target camera_with_fps
 camera_with_fps_OBJECTS = \
@@ -152,18 +152,18 @@ src/camera_with_fps: /opt/homebrew/lib/libopencv_photo.4.11.0.dylib
 src/camera_with_fps: /opt/homebrew/lib/libopencv_imgproc.4.11.0.dylib
 src/camera_with_fps: /opt/homebrew/lib/libopencv_core.4.11.0.dylib
 src/camera_with_fps: src/CMakeFiles/camera_with_fps.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable camera_with_fps"
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/camera_with_fps.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable camera_with_fps"
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/camera_with_fps.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 src/CMakeFiles/camera_with_fps.dir/build: src/camera_with_fps
 .PHONY : src/CMakeFiles/camera_with_fps.dir/build
 
 src/CMakeFiles/camera_with_fps.dir/clean:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src && $(CMAKE_COMMAND) -P CMakeFiles/camera_with_fps.dir/cmake_clean.cmake
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src && $(CMAKE_COMMAND) -P CMakeFiles/camera_with_fps.dir/cmake_clean.cmake
 .PHONY : src/CMakeFiles/camera_with_fps.dir/clean
 
 src/CMakeFiles/camera_with_fps.dir/depend:
-	cd /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/src /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src /Users/edenpark/Desktop/Massey/cplus/731_opencv_camera-main/build/src/CMakeFiles/camera_with_fps.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/src /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src /Users/edenpark/Desktop/Massey/cplus/ch1-731_opencv_camera-main/build/src/CMakeFiles/camera_with_fps.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : src/CMakeFiles/camera_with_fps.dir/depend
 

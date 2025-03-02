@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+
+  "tasks": [
+    {
+      "label": "CMake Configure",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-B",
+        "build",
+        "-S",
+        ".",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DOpenCV_DIR=/opt/homebrew/Cellar/opencv/4.11.0"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "CMake Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build", "--config", "Debug"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": ["CMake Configure"],
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Clean",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "build"]
+    }
+  ]
+}
