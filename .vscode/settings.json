@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.react.js": "javascriptreact",
+    "*.jsx": "javascriptreact",
+    "*.js": "javascriptreact",
+    "vector": "cpp",
+    "unordered_set": "cpp",
+    "iostream": "cpp"
+  }
+}

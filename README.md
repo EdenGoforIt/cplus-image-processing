@@ -58,3 +58,27 @@
 2. Ensure your camera is connected and properly configured.
 
 3. Follow any on-screen instructions provided by the application.
+
+# Others
+
+```
+/opt/homebrew/include/opencv4/opencv2
+
+
+ g++ camera_with_fps.cpp  -o cv -I/opt/homebrew/include/opencv4/opencv2
+```
+
+Actually the open cv can be found here
+
+```
+-- Found OpenCV: /opt/homebrew/Cellar/opencv/4.11.0 (found version "4.11.0")
+
+```
+
+## Holy shit!!! How to make sure that intellisense is working for open cv.
+
+1. Create a folder called include
+2. Copy paste include folder from [text](../../../../../opt/homebrew/Cellar/opencv/4.11.0/include/opencv4)
+3. rm -rf build && mkdir build && cd build
+4. cmake ..
+5. make

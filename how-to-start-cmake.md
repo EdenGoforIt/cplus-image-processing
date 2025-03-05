@@ -141,3 +141,15 @@ Create `.vscode/launch.json`:
 ```
 
 Now you can press F5 to debug your program in VS Code.
+
+## Commands useful
+
+```
+g++ -o executable_name program_name.cpp -lopencv_highgui -lopencv_core -lopencv_imgcodecs
+or, if the path for the include directory and library directory are needed:
+g++ -o executable_name program_name.c -I /usr/local/include/opencv/
+-L /usr/local/lib/ -lopencv_highgui -lopencv_core -lopencv_imgcodecs
+or yet another form:
+g++ -o executable name program name.c `pkg-config --libs --cflags opencv`
+
+```
