@@ -5,6 +5,7 @@
     "*.js": "javascriptreact",
     "vector": "cpp",
     "unordered_set": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "ostream": "cpp"
   }
 }
