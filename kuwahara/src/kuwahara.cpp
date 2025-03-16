@@ -7,7 +7,9 @@ using namespace cv;
 using namespace std;
 using namespace chrono;
 
-/// @brief Calculate Integral Image and Sqaure Integraal Image
+/// @brief Calculate Integral Image and Sqaure Integraal Image. (Summed Area Tables (SAT))
+/// @details SAT tables will be used to calculate the mean and variances of regions in Kuwahara Filter
+/// The details of the algorithm can be found in https://en.wikipedia.org/wiki/Summed-area_table#:~:text=In%20the%20image%20processing%20domain,Crow%20for%20use%20with%20mipmaps.
 /// @param input input Image to calculate Sum and Square Sum images
 /// @param sumImage output Sum Image
 /// @param sqSumImage output Square Sum Image
@@ -29,11 +31,13 @@ void calculateIntegralImages(const Mat &input, Mat &sumImage, Mat &sqSumImage)
 			double pixelSq = pixel * pixel;
 
 			// Calculate sums (+1 because integral images have extra row/col)
+			// I(x,y) = i(x,y) + I(x-1, y) + I(x,y -1) +  - I(x-1, y-1). In Matrix, element is accessed by matrix[row, col] = matrix [y,x]
 			sumImage.at<double>(y + 1, x + 1) = pixel +
 																					sumImage.at<double>(y, x + 1) +
 																					sumImage.at<double>(y + 1, x) -
 																					sumImage.at<double>(y, x);
 
+			// Sqaure Sum will be used to calculate variance
 			sqSumImage.at<double>(y + 1, x + 1) = pixelSq +
 																						sqSumImage.at<double>(y, x + 1) +
 																						sqSumImage.at<double>(y + 1, x) -
@@ -61,13 +65,14 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 	{
 		for (int x = 0; x < input.cols; x++)
 		{
+			// TODO: how to simply???
 			// Arrays to store region info
 			double regionMean[4] = {0};
 			double regionVar[4] = {0};
 			int regionSize[4] = {0};
 
 			// Define the 4 regions (quadrants) around current pixel
-			// Region 1: Top-Left
+			// Region 1: Top-Left (A)
 			int r1_y1 = max(0, y - halfKernelSize);
 			int r1_x1 = max(0, x - halfKernelSize);
 			int r1_y2 = y;
@@ -123,6 +128,7 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 					double topRight = (y1 > 0) ? sumImage.at<double>(y1 - 1, x2) : 0;
 					double topLeft = (y1 > 0 && x1 > 0) ? sumImage.at<double>(y1 - 1, x1 - 1) : 0;
 
+					// Area = pt4 - pt2 - pt3 + pt1
 					double sum = bottomRight - bottomLeft - topRight + topLeft;
 
 					// Get sum of squares with boundary checking
@@ -153,7 +159,7 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 
 int main(int argc, char **argv)
 {
-	// Argument Validation
+	// Argument Validation. Argument should have three parameters.
 	if (argc != 4)
 	{
 		cerr << "!! Wrong Arguments. " << argv[0] << " <input> <output> <kernel_size>. e.g. ./src/kuwahara limes_kuwahara5x5.tif output1.jpg 5" << endl;
@@ -167,14 +173,14 @@ int main(int argc, char **argv)
 
 	cout << "Converted - Input: " << inputPath << ". Output: " << outputPath << ". Kernel Size: " << kernelSize << endl;
 
-	// Kernel Size Validation
+	// Kernel Size Validation. Odd nubmer works better.
 	if (kernelSize % 2 == 0 || kernelSize < 3 || kernelSize > 15)
 	{
 		cerr << "!! Kernel Size should be odd and between 3 and 15." << endl;
 		return -1;
 	}
 
-	// Read Image
+	// Read Image. The image should be under the root directory. Otherwise change this path.
 	string fullInputPath = "../" + string(inputPath);
 	Mat inputImage = imread(fullInputPath, IMREAD_GRAYSCALE);
 
@@ -195,6 +201,7 @@ int main(int argc, char **argv)
 	auto duration = duration_cast<microseconds>(stopTime - startTime);
 	cout << "Processing time: " << duration.count() / 1000.0 << " milliseconds" << endl;
 
+	// The image should be under the root directory. Otherwise change this path.
 	string fullOutputPath = "../" + string(outputPath);
 	imwrite(fullOutputPath, outputImage);
 
