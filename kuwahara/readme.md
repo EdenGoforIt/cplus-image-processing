@@ -74,3 +74,4 @@ To gain a deeper understanding of the algorithm, this program references the fol
 - (What is a Kuwahara Filter)[https://medium.com/swlh/what-is-a-kuwahara-filter-77921ce286f2]
 - (An Image Denoising Algorithm based on Kuwahara Filter)[https://www.arivis.com/blog/denoising-images-using-kuwahara-filter]
   -(Image Fusion Using Kuwahara Filter; ISSN: 0975-9646)[https://www.ijcsit.com/docs/Volume%205/vol5issue04/ijcsit20140504242.pdf]
+- (Adaptive Kuwahara ﬁlter)[https://www.researchgate.net/publication/282512229_Adaptive_Kuwahara_filter]
