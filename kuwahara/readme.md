@@ -60,6 +60,12 @@ $ ./src/kuwahara limes_kuwahara13x13 output3.jpg 13
 $ ./src/kuwahara limes_kuwahara15x15 output3.jpg 15
 ```
 
+For debugging use the following
+
+```
+./src/kuwahara debug output1.jpg 5
+```
+
 CMAKE CONFIGURATION
 The project uses the following CMake configuration:
 
