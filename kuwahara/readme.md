@@ -53,11 +53,11 @@ This implementation uses Summed-Area Tables (SAT) for efficient calculation:
 Test the implementation with different images and kernel sizes:
 
 ```
-$ .src/main limes_kuwahara5x5 output1.jpg 5
-$ .src/main limes_kuwahara7x7 output2.jpg 7
-$ .src/main limes_kuwahara9x9 output3.jpg 9
-$ .src/main limes_kuwahara13x13 output3.jpg 13
-$ .src/main limes_kuwahara15x15 output3.jpg 15
+$ ./src/kuwahara limes_kuwahara5x5 output1.jpg 5
+$ ./src/kuwahara limes_kuwahara7x7 output2.jpg 7
+$ ./src/kuwahara limes_kuwahara9x9 output3.jpg 9
+$ ./src/kuwahara limes_kuwahara13x13 output3.jpg 13
+$ ./src/kuwahara limes_kuwahara15x15 output3.jpg 15
 ```
 
 CMAKE CONFIGURATION

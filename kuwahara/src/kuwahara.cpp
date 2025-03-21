@@ -10,6 +10,7 @@ using namespace chrono;
 /// @brief Calculate Integral Image and Sqaure Integraal Image. (Summed Area Tables (SAT))
 /// @details SAT tables will be used to calculate the mean and variances of regions in Kuwahara Filter
 /// The details of the algorithm can be found in https://en.wikipedia.org/wiki/Summed-area_table#:~:text=In%20the%20image%20processing%20domain,Crow%20for%20use%20with%20mipmaps.
+/// e.g arguments - .src/main limes_kuwahara5x5 output1.jpg 5
 /// @param input input Image to calculate Sum and Square Sum images
 /// @param sumImage output Sum Image
 /// @param sqSumImage output Square Sum Image
@@ -61,17 +62,20 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 	// Calculate integral images already to improve performance
 	calculateIntegralImages(inputDoubleImage, sumImage, sqSumImage);
 
-	// Process each pixel
+	// Rows
 	for (int y = 0; y < input.rows; y++)
 	{
+		// Then columns
 		for (int x = 0; x < input.cols; x++)
 		{
 			// Arrays to store region info
 			double regionMean[4] = {0};
-			double regionVar[4] = {0};
+			double regionVariance[4] = {0};
 			int regionSize[4] = {0};
 
 			// Define the 4 regions (quadrants) around current pixel
+			//  A | B
+			//  C | D
 
 			// Region 1: Top-Left (A)
 			int r1_y1 = max(0, y - halfKernelSize);
@@ -79,19 +83,19 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 			int r1_x1 = max(0, x - halfKernelSize);
 			int r1_x2 = x;
 
-			// Region 2: Top-Right
-			int r2_y1 = max(0, y - halfKernelSize);							 // 0
-			int r2_y2 = y;																			 // 0
-			int r2_x1 = x;																			 // 1
-			int r2_x2 = min(input.cols - 1, x + halfKernelSize); // -1 as index starts with 0 // 6
+			// Region 2: Top-Right (B)
+			int r2_y1 = max(0, y - halfKernelSize);
+			int r2_y2 = y;
+			int r2_x1 = x;
+			int r2_x2 = min(input.cols - 1, x + halfKernelSize);
 
-			// Region 3: Bottom-Left
+			// Region 3: Bottom-Left (C)
 			int r3_y1 = y;
 			int r3_y2 = min(input.rows - 1, y + halfKernelSize); // Changed to -1
 			int r3_x1 = max(0, x - halfKernelSize);
 			int r3_x2 = x;
 
-			// Region 4: Bottom-Right
+			// Region 4: Bottom-Right (D)
 			int r4_y1 = y;
 			int r4_y2 = min(input.rows - 1, y + halfKernelSize); // Changed to -1
 			int r4_x1 = x;
@@ -112,7 +116,7 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 					{r4_y1, r4_x1, r4_y2, r4_x2}};
 
 			// Calculate mean and variance for each region
-			double minVar = DBL_MAX;
+			double minVariance = DBL_MAX;
 			int minVarIndex = 0;
 
 			for (int i = 0; i < 4; i++)
@@ -143,11 +147,11 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 
 					// Calculate mean and variance
 					regionMean[i] = sum / regionSize[i];
-					regionVar[i] = (sqSum / regionSize[i]) - (regionMean[i] * regionMean[i]);
+					regionVariance[i] = (sqSum / regionSize[i]) - (regionMean[i] * regionMean[i]);
 
-					if (regionVar[i] < minVar)
+					if (regionVariance[i] < minVariance)
 					{
-						minVar = regionVar[i];
+						minVariance = regionVariance[i];
 						minVarIndex = i;
 					}
 				}
@@ -168,45 +172,67 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// Argument Conversion
-	const char *inputPath = argv[1];
-	const char *outputPath = argv[2];
-	int kernelSize = atoi(argv[3]);
-
-	cout << "Converted - Input: " << inputPath << ". Output: " << outputPath << ". Kernel Size: " << kernelSize << endl;
-
-	// Kernel Size Validation. Odd nubmer works better.
-	if (kernelSize % 2 == 0 || kernelSize < 3 || kernelSize > 15)
+	try
 	{
-		cerr << "!! Kernel Size should be odd and between 3 and 15." << endl;
+		// Argument Conversion
+		const char *inputPath = argv[1];
+		const char *outputPath = argv[2];
+		int kernelSize = atoi(argv[3]);
+
+		cout << "Converted - Input: " << inputPath << ". Output: " << outputPath << ". Kernel Size: " << kernelSize << endl;
+
+		// Kernel Size Validation. Odd nubmer works better.
+		if (kernelSize % 2 == 0 || kernelSize < 3 || kernelSize > 15)
+		{
+			cerr << "!! Kernel Size should be odd and between 3 and 15." << endl;
+			return -1;
+		}
+
+		// Read Image. The image should be under the root directory. Otherwise change the path below.
+		string fullInputPath = "../" + string(inputPath);
+		Mat inputImage = imread(fullInputPath, IMREAD_GRAYSCALE);
+
+		if (inputImage.empty())
+		{
+			cerr << "!! Input Image cannot be read." << endl;
+			return -1;
+		}
+
+		// Timer starts
+		auto startTime = high_resolution_clock::now();
+
+		Mat outputImage;
+		kuwaharaFilter(inputImage, outputImage, kernelSize);
+
+		// Measure time
+		auto stopTime = high_resolution_clock::now();
+		auto duration = duration_cast<microseconds>(stopTime - startTime);
+		cout << "Processing time: " << duration.count() / 1000.0 << " milliseconds" << endl;
+
+		// The image should be under the root directory. Otherwise change the path below.
+		string fullOutputPath = "../" + string(outputPath);
+		imwrite(fullOutputPath, outputImage);
+		cout << "Successfully implemented Kuwahara Filter." << endl;
+		return 0;
+	}
+	catch (const std::invalid_argument &e)
+	{
+		std::cerr << "Invalid argument Exception: " << e.what() << "\n";
 		return -1;
 	}
-
-	// Read Image. The image should be under the root directory. Otherwise change this path.
-	string fullInputPath = "../" + string(inputPath);
-	Mat inputImage = imread(fullInputPath, IMREAD_GRAYSCALE);
-
-	if (inputImage.empty())
+	catch (const cv::Exception &e)
 	{
-		cerr << "!! Input Image cannot be read." << endl;
-		return -1;
+		std::cerr << "OpenCV Exception: " << e.what() << std::endl;
+		return 1;
 	}
-
-	// Timer starts
-	auto startTime = high_resolution_clock::now();
-
-	Mat outputImage;
-	kuwaharaFilter(inputImage, outputImage, kernelSize);
-
-	// Measure time
-	auto stopTime = high_resolution_clock::now();
-	auto duration = duration_cast<microseconds>(stopTime - startTime);
-	cout << "Processing time: " << duration.count() / 1000.0 << " milliseconds" << endl;
-
-	// The image should be under the root directory. Otherwise change this path.
-	string fullOutputPath = "../" + string(outputPath);
-	imwrite(fullOutputPath, outputImage);
-
-	cout << "Successfully implemented Kuwahara Filter." << endl;
-	return 0;
+	catch (const std::exception &e)
+	{
+		std::cerr << "Standard Exception: " << e.what() << std::endl;
+		return 1;
+	}
+	catch (...)
+	{
+		std::cerr << "An unknown error occurred" << std::endl;
+		return 1;
+	}
 }
