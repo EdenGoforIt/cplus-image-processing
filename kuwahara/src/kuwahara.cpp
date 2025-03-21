@@ -58,6 +58,7 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 	Mat inputDoubleImage;
 	input.convertTo(inputDoubleImage, CV_64F);
 
+	// Calculate integral images already to improve performance
 	calculateIntegralImages(inputDoubleImage, sumImage, sqSumImage);
 
 	// Process each pixel
@@ -65,38 +66,39 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 	{
 		for (int x = 0; x < input.cols; x++)
 		{
-			// TODO: how to simply???
 			// Arrays to store region info
 			double regionMean[4] = {0};
 			double regionVar[4] = {0};
 			int regionSize[4] = {0};
 
 			// Define the 4 regions (quadrants) around current pixel
+
 			// Region 1: Top-Left (A)
 			int r1_y1 = max(0, y - halfKernelSize);
-			int r1_x1 = max(0, x - halfKernelSize);
 			int r1_y2 = y;
+			int r1_x1 = max(0, x - halfKernelSize);
 			int r1_x2 = x;
 
 			// Region 2: Top-Right
-			int r2_y1 = max(0, y - halfKernelSize);
-			int r2_x1 = x;
-			int r2_y2 = y;
-			int r2_x2 = min(input.cols - 1, x + halfKernelSize); // Changed to -1
+			int r2_y1 = max(0, y - halfKernelSize);							 // 0
+			int r2_y2 = y;																			 // 0
+			int r2_x1 = x;																			 // 1
+			int r2_x2 = min(input.cols - 1, x + halfKernelSize); // -1 as index starts with 0 // 6
 
 			// Region 3: Bottom-Left
 			int r3_y1 = y;
-			int r3_x1 = max(0, x - halfKernelSize);
 			int r3_y2 = min(input.rows - 1, y + halfKernelSize); // Changed to -1
+			int r3_x1 = max(0, x - halfKernelSize);
 			int r3_x2 = x;
 
 			// Region 4: Bottom-Right
 			int r4_y1 = y;
-			int r4_x1 = x;
 			int r4_y2 = min(input.rows - 1, y + halfKernelSize); // Changed to -1
+			int r4_x1 = x;
 			int r4_x2 = min(input.cols - 1, x + halfKernelSize); // Changed to -1
 
 			// Calculate region sizes
+			// Adding + 1 to 3 - 1 becomes 2 but it should be 3 pixels
 			regionSize[0] = (r1_y2 - r1_y1 + 1) * (r1_x2 - r1_x1 + 1);
 			regionSize[1] = (r2_y2 - r2_y1 + 1) * (r2_x2 - r2_x1 + 1);
 			regionSize[2] = (r3_y2 - r3_y1 + 1) * (r3_x2 - r3_x1 + 1);
