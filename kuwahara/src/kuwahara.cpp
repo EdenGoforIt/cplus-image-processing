@@ -11,15 +11,13 @@ using namespace cv;
 using namespace std;
 using namespace chrono;
 
-/// @brief This is for testing the algorithm with 5x5 image
+/// @brief Generate mock image with 5x5 for testing
 /// @return 5x5 image with 32-bit signed integers
 Mat generate5x5MatImage()
 {
-	// Create a 5x5 image with 1 channel of 32-bit signed integers.
-	cv::Mat image(5, 5, CV_32SC1);
+	cv::Mat image(5, 5, CV_8U);
 	int counter = 0;
 
-	// Fill the image with unique values from 0 to 24
 	for (int row = 0; row < image.rows; ++row)
 	{
 		for (int col = 0; col < image.cols; ++col)
@@ -34,7 +32,7 @@ Mat generate5x5MatImage()
 /// @brief Calculate Integral Image and Sqaure Integraal Image. (Summed Area Tables (SAT))
 /// @details SAT tables will be used to calculate the mean and variances of regions in Kuwahara Filter
 /// The details of the algorithm can be found in https://en.wikipedia.org/wiki/Summed-area_table#:~:text=In%20the%20image%20processing%20domain,Crow%20for%20use%20with%20mipmaps.
-/// e.g arguments - .src/kuwahara limes output1.jpg 5
+/// e.g arguments - .src/kuwahara limes.tif output1.jpg 5
 /// e.g. arguments for debugging - .src/kuwahara debug output1.jpg 5
 /// @param input input Image to calculate Sum and Square Sum images
 /// @param sumImage output Sum Image
@@ -72,9 +70,18 @@ void calculateIntegralImages(const Mat &input, Mat &sumImage, Mat &sqSumImage)
 	}
 }
 
+/// @brief This works by four big steps
+/// 1. Calculate the integral image and square integral image
+/// 2. Calculate the mean and variance of each region
+/// 3. Find the region with the smallest variance
+/// 4. Set the output pixel to the mean of the region with the smallest variance
+/// @param input Input image
+/// @param output Output image
+/// @param kernelSize Kernel size
 void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 {
-	std::ofstream logFile("log.txt");
+	// Debug
+	// std::ofstream logFile("log.txt");
 
 	// Create output image
 	output = Mat(input.size(), input.type());
@@ -96,9 +103,8 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 		for (int x = 0; x < input.cols; x++)
 		{
 			// Arrays to store region info
-			double regionMean[4] = {0};
-			double regionVariance[4] = {0};
-			int regionSize[4] = {0};
+			double means[4] = {0};
+			double variances[4] = {0};
 
 			// Define the 4 regions (quadrants) around current pixel
 			//  A | B
@@ -128,70 +134,81 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 			int d_x1 = x;
 			int d_x2 = min(input.cols - 1, x + halfKernelSize);
 
-			// Calculate region sizes
-			regionSize[0] = (a_y2 - a_y1 + 1) * (a_x2 - a_x1 + 1);
-			regionSize[1] = (b_y2 - b_y1 + 1) * (b_x2 - b_x1 + 1);
-			regionSize[2] = (c_y2 - c_y1 + 1) * (c_x2 - c_x1 + 1);
-			regionSize[3] = (d_y2 - d_y1 + 1) * (d_x2 - d_x1 + 1);
-
-			// Region coordinates array
-			int regions[4][4] = {
+			// Quadrants coordinates array
+			int quadrants[4][4] = {
 					{a_y1, a_x1, a_y2, a_x2},
 					{b_y1, b_x1, b_y2, b_x2},
 					{c_y1, c_x1, c_y2, c_x2},
 					{d_y1, d_x1, d_y2, d_x2}};
 
-			// Log each region's values to the log.txt file for debugging
-			for (int i = 0; i < 4; i++)
-			{
-				logFile << "Region " << i + 1 << ": ";
-				logFile << "Row " << regions[i][0] << " to " << regions[i][2] << ", ";
-				logFile << "Col " << regions[i][1] << " to " << regions[i][3] << std::endl;
-			}
+			// Debug: Log each region's values to the log.txt file for debugging
+			// for (int i = 0; i < 4; i++)
+			// {
+			// 	logFile << "Region " << i + 1 << ": ";
+			// 	logFile << "Row " << quadrants[i][0] << " to " << quadrants[i][2] << ", ";
+			// 	logFile << "Col " << quadrants[i][1] << " to " << quadrants[i][3] << std::endl;
+			// }
 
 			// Calculate mean and variance for each region
 			double minVariance = DBL_MAX;
-			int minVarIndex = 0;
+			int lowestVarianceIndex = 0;
 
 			// Loop through quadrants
 			for (int i = 0; i < 4; i++)
 			{
-				if (regionSize[i] > 0)
+				int y1 = quadrants[i][0];
+				int x1 = quadrants[i][1];
+				int y2 = quadrants[i][2];
+				int x2 = quadrants[i][3];
+
+				// Edge protection
+				if (y1 >= y2 || x1 >= x2)
 				{
-					int y1 = regions[i][0];
-					int x1 = regions[i][1];
-					int y2 = regions[i][2];
-					int x2 = regions[i][3];
+					continue;
+				}
 
-					// Calculate sum and square sum of regions. pt4 - pt1 - pt2 + pt3
-					// + 1 as Integral Images have padding to avoid negative indices
-					double sum = sumImage.at<double>(y2 + 1, x2 + 1) -
-											 sumImage.at<double>(y1, x2 + 1) -
-											 sumImage.at<double>(y2 + 1, x1) +
-											 sumImage.at<double>(y1, x1);
+				int numberOfPixels = (y2 - y1 + 1) * (x2 - x1 + 1);
 
-					double sqSum = sqSumImage.at<double>(y2 + 1, x2 + 1) -
-												 sqSumImage.at<double>(y1, x2 + 1) -
-												 sqSumImage.at<double>(y2 + 1, x1) +
-												 sqSumImage.at<double>(y1, x1);
+				// Calculate sum and square sum of regions. pt4 - pt1 - pt2 + pt3
+				// + 1 as Integral Images have padding to avoid negative indices
+				double sum = sumImage.at<double>(y2 + 1, x2 + 1) -
+										 sumImage.at<double>(y1, x2 + 1) -
+										 sumImage.at<double>(y2 + 1, x1) +
+										 sumImage.at<double>(y1, x1);
 
-					// Calculate mean and variance
-					regionMean[i] = sum / regionSize[i];
-					regionVariance[i] = (sqSum / regionSize[i]) - (regionMean[i] * regionMean[i]);
+				double sqSum = sqSumImage.at<double>(y2 + 1, x2 + 1) -
+											 sqSumImage.at<double>(y1, x2 + 1) -
+											 sqSumImage.at<double>(y2 + 1, x1) +
+											 sqSumImage.at<double>(y1, x1);
 
-					if (regionVariance[i] < minVariance)
-					{
-						minVariance = regionVariance[i];
-						minVarIndex = i;
-					}
+				// Debug
+				// logFile << "Sum: " << sum << " | Square Sum:  " << sqSum << endl;
+
+				// Calculate mean and variance
+				means[i] = sum / numberOfPixels;
+				variances[i] = (sqSum / numberOfPixels) - (means[i] * means[i]);
+
+				// Debug
+				// logFile << "Min: " << means[i] << " | Square Sum:  " << variances[i] << endl;
+
+				// Keep track of the minimum variacne
+				if (variances[i] < minVariance)
+				{
+					minVariance = variances[i];
+					lowestVarianceIndex = i;
+
+					// Debug
+					// logFile << "Found min variance: " << minVariance << endl;
 				}
 			}
 
-			// Set output pixel to mean of region with minimum variance
-			output.at<uchar>(y, x) = saturate_cast<uchar>(regionMean[minVarIndex]);
+			// Set output pixel to the mean of the region with the smallest variance
+			output.at<uchar>(y, x) = saturate_cast<uchar>(means[lowestVarianceIndex]);
 		}
 	}
-	logFile.close();
+
+	// Debug
+	// logFile.close();
 }
 
 int main(int argc, char **argv)
@@ -205,12 +222,12 @@ int main(int argc, char **argv)
 
 	try
 	{
-		// Argument Conversion
+		// Parse Arguments
 		const char *inputPath = argv[1];
 		const char *outputPath = argv[2];
 		int kernelSize = atoi(argv[3]);
 
-		cout << "Converted - Input: " << inputPath << ". Output: " << outputPath << ". Kernel Size: " << kernelSize << endl;
+		cout << "Arguments - Input: " << inputPath << ". Output: " << outputPath << ". Kernel Size: " << kernelSize << endl;
 
 		// Kernel Size Validation. Odd nubmer works better.
 		if (kernelSize % 2 == 0 || kernelSize < 3 || kernelSize > 15)
