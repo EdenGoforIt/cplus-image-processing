@@ -32,8 +32,8 @@ Mat generate5x5MatImage()
 /// @brief Calculate Integral Image and Sqaure Integraal Image. (Summed Area Tables (SAT))
 /// @details SAT tables will be used to calculate the mean and variances of regions in Kuwahara Filter
 /// The details of the algorithm can be found in https://en.wikipedia.org/wiki/Summed-area_table#:~:text=In%20the%20image%20processing%20domain,Crow%20for%20use%20with%20mipmaps.
-/// e.g arguments - .src/kuwahara limes.tif output1.jpg 5
-/// e.g. arguments for debugging - .src/kuwahara debug output1.jpg 5
+/// e.g arguments - ./src/kuwahara limes.tif output1.jpg 5
+/// e.g. arguments for debugging - ./src/kuwahara debug output1.jpg 5
 /// @param input input Image to calculate Sum and Square Sum images
 /// @param sumImage output Sum Image
 /// @param sqSumImage output Square Sum Image
