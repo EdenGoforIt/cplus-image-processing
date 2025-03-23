@@ -273,22 +273,22 @@ int main(int argc, char **argv)
 	}
 	catch (const std::invalid_argument &e)
 	{
-		std::cerr << "Invalid argument Exception: " << e.what() << "\n";
+		cerr << "Invalid argument Exception: " << e.what() << "\n";
 		return -1;
 	}
 	catch (const cv::Exception &e)
 	{
-		std::cerr << "OpenCV Exception: " << e.what() << std::endl;
+		cerr << "OpenCV Exception: " << e.what() << std::endl;
 		return -1;
 	}
 	catch (const std::exception &e)
 	{
-		std::cerr << "Standard Exception: " << e.what() << std::endl;
+		cerr << "Standard Exception: " << e.what() << std::endl;
 		return -1;
 	}
 	catch (...)
 	{
-		std::cerr << "An unknown error occurred" << std::endl;
+		cerr << "An unknown error occurred" << std::endl;
 		return -1;
 	}
 }
