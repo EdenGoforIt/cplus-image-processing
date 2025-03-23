@@ -279,16 +279,16 @@ int main(int argc, char **argv)
 	catch (const cv::Exception &e)
 	{
 		std::cerr << "OpenCV Exception: " << e.what() << std::endl;
-		return 1;
+		return -1;
 	}
 	catch (const std::exception &e)
 	{
 		std::cerr << "Standard Exception: " << e.what() << std::endl;
-		return 1;
+		return -1;
 	}
 	catch (...)
 	{
 		std::cerr << "An unknown error occurred" << std::endl;
-		return 1;
+		return -1;
 	}
 }
