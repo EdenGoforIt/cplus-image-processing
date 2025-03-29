@@ -11,7 +11,18 @@ using namespace cv;
 using namespace std;
 using namespace chrono;
 
-/// @brief Generate mock image with 5x5 for testing
+struct Quadrant
+{
+	int y1, x1, y2, x2;
+};
+
+struct RegionStats
+{
+	double mean = 0.0;
+	double variance = DBL_MAX;
+};
+
+/// @brief Generate mock image with 5x5
 /// @return 5x5 image with 32-bit signed integers
 Mat generate5x5MatImage()
 {
