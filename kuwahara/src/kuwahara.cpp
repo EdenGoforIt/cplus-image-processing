@@ -3,24 +3,64 @@
 #include <string>
 #include <chrono>
 
-// For Logs
-#include <iostream>
-#include <fstream>
+// Debug
+// #include <iostream>
+// #include <fstream>
 
 using namespace cv;
 using namespace std;
 using namespace chrono;
 
+/// @brief Struct to hold the coordinates of a quadrant.
 struct Quadrant
 {
 	int y1, x1, y2, x2;
 };
 
-struct RegionStats
+/// @brief Struct to hold the mean and variance of a region.
+struct RegionStatistics
 {
 	double mean = 0.0;
 	double variance = DBL_MAX;
 };
+
+/// @brief Calculate the mean and variance of a region.
+/// @details The region is defined by the top-left and bottom-right corners.
+/// The mean and variance are calculated using the integral images.
+/// The mean is calculated as:
+/// mean = sum / numberOfPixels
+/// The variance is calculated as:
+/// variance = (sqSum / numberOfPixels) - (mean * mean)
+/// @param sumImage Sum image
+/// @param sqSumImage  square sum image
+/// @param quad quadrant
+/// @return RegionStatistics
+RegionStatistics calculateRegionStatistics(const Mat &sumImage, const Mat &sqSumImage, const Quadrant &quad)
+{
+	RegionStatistics stats;
+
+	if (quad.y1 >= quad.y2 || quad.x1 >= quad.x2)
+	{
+		return stats;
+	}
+
+	int numberOfPixels = (quad.y2 - quad.y1 + 1) * (quad.x2 - quad.x1 + 1);
+
+	double sum = sumImage.at<double>(quad.y2 + 1, quad.x2 + 1) -
+							 sumImage.at<double>(quad.y1, quad.x2 + 1) -
+							 sumImage.at<double>(quad.y2 + 1, quad.x1) +
+							 sumImage.at<double>(quad.y1, quad.x1);
+
+	double sqSum = sqSumImage.at<double>(quad.y2 + 1, quad.x2 + 1) -
+								 sqSumImage.at<double>(quad.y1, quad.x2 + 1) -
+								 sqSumImage.at<double>(quad.y2 + 1, quad.x1) +
+								 sqSumImage.at<double>(quad.y1, quad.x1);
+
+	stats.mean = sum / numberOfPixels;
+	stats.variance = (sqSum / numberOfPixels) - (stats.mean * stats.mean);
+
+	return stats;
+}
 
 /// @brief Generate mock image with 5x5
 /// @return 5x5 image with 32-bit signed integers
@@ -38,6 +78,31 @@ Mat generate5x5MatImage()
 	}
 
 	return image;
+}
+
+/// @brief Get quadrants of the image.
+/// @details The quadrants are defined as follows:
+/// A: Top-left, B: Top-right, C: Bottom-left, D: Bottom-right
+/// @param x column index
+/// @param y row index
+/// @param halfKernel half of the kernel size
+/// @param rows rows of the image
+/// @param cols columns of the image
+/// @return vector of quadrants
+vector<Quadrant> getQuadrants(int x, int y, int halfKernel, int rows, int cols)
+{
+	return {
+			// A
+			{max(0, y - halfKernel), max(0, x - halfKernel), y, x},
+
+			// B
+			{max(0, y - halfKernel), x, y, min(cols - 1, x + halfKernel)},
+
+			// C
+			{y, max(0, x - halfKernel), min(rows - 1, y + halfKernel), x},
+
+			// D
+			{y, x, min(rows - 1, y + halfKernel), min(cols - 1, x + halfKernel)}};
 }
 
 /// @brief Calculate Integral Image and Sqaure Integraal Image. (Summed Area Tables (SAT))
@@ -81,8 +146,8 @@ void calculateIntegralImages(const Mat &input, Mat &sumImage, Mat &sqSumImage)
 	}
 }
 
-/// @brief This works by four big steps
-/// 1. Calculate the integral image and square integral image
+/// @brief This works by four big four steps
+/// 1. Calculate the integral image and square integral image. Still Big O(n) time compexity.
 /// 2. Calculate the mean and variance of each region
 /// 3. Find the region with the smallest variance
 /// 4. Set the output pixel to the mean of the region with the smallest variance
@@ -113,44 +178,7 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 		// Then columns
 		for (int x = 0; x < input.cols; x++)
 		{
-			// Arrays to store region info
-			double means[4] = {0};
-			double variances[4] = {0};
-
-			// Define the 4 regions (quadrants) around current pixel
-			//  A | B
-			//  C | D
-
-			// Region 1: Top-Left (A)
-			int a_y1 = max(0, y - halfKernelSize);
-			int a_y2 = y;
-			int a_x1 = max(0, x - halfKernelSize);
-			int a_x2 = x;
-
-			// Region 2: Top-Right (B)
-			int b_y1 = max(0, y - halfKernelSize);
-			int b_y2 = y;
-			int b_x1 = x;
-			int b_x2 = min(input.cols - 1, x + halfKernelSize);
-
-			// Region 3: Bottom-Left (C)
-			int c_y1 = y;
-			int c_y2 = min(input.rows - 1, y + halfKernelSize);
-			int c_x1 = max(0, x - halfKernelSize);
-			int c_x2 = x;
-
-			// Region 4: Bottom-Right (D)
-			int d_y1 = y;
-			int d_y2 = min(input.rows - 1, y + halfKernelSize);
-			int d_x1 = x;
-			int d_x2 = min(input.cols - 1, x + halfKernelSize);
-
-			// Quadrants coordinates array
-			int quadrants[4][4] = {
-					{a_y1, a_x1, a_y2, a_x2},
-					{b_y1, b_x1, b_y2, b_x2},
-					{c_y1, c_x1, c_y2, c_x2},
-					{d_y1, d_x1, d_y2, d_x2}};
+			auto quadrants = getQuadrants(x, y, halfKernelSize, input.rows, input.cols);
 
 			// Debug: Log each region's values to the log.txt file for debugging
 			// for (int i = 0; i < 4; i++)
@@ -162,59 +190,22 @@ void kuwaharaFilter(const Mat &input, Mat &output, int kernelSize)
 
 			// Calculate mean and variance for each region
 			double minVariance = DBL_MAX;
-			int lowestVarianceIndex = 0;
+			double meanWithSmallestVariance = 0.0;
 
 			// Loop through quadrants
-			for (int i = 0; i < 4; i++)
+			for (const Quadrant &quad : quadrants)
 			{
-				int y1 = quadrants[i][0];
-				int x1 = quadrants[i][1];
-				int y2 = quadrants[i][2];
-				int x2 = quadrants[i][3];
+				RegionStatistics stats = calculateRegionStatistics(sumImage, sqSumImage, quad);
 
-				// Edge protection
-				if (y1 >= y2 || x1 >= x2)
+				if (stats.variance < minVariance)
 				{
-					continue;
-				}
-
-				int numberOfPixels = (y2 - y1 + 1) * (x2 - x1 + 1);
-
-				// Calculate sum and square sum of regions. pt4 - pt1 - pt2 + pt3
-				// + 1 as Integral Images have padding to avoid negative indices
-				double sum = sumImage.at<double>(y2 + 1, x2 + 1) -
-										 sumImage.at<double>(y1, x2 + 1) -
-										 sumImage.at<double>(y2 + 1, x1) +
-										 sumImage.at<double>(y1, x1);
-
-				double sqSum = sqSumImage.at<double>(y2 + 1, x2 + 1) -
-											 sqSumImage.at<double>(y1, x2 + 1) -
-											 sqSumImage.at<double>(y2 + 1, x1) +
-											 sqSumImage.at<double>(y1, x1);
-
-				// Debug
-				// logFile << "Sum: " << sum << " | Square Sum:  " << sqSum << endl;
-
-				// Calculate mean and variance
-				means[i] = sum / numberOfPixels;
-				variances[i] = (sqSum / numberOfPixels) - (means[i] * means[i]);
-
-				// Debug
-				// logFile << "Min: " << means[i] << " | Square Sum:  " << variances[i] << endl;
-
-				// Keep track of the minimum variacne
-				if (variances[i] < minVariance)
-				{
-					minVariance = variances[i];
-					lowestVarianceIndex = i;
-
-					// Debug
-					// logFile << "Found min variance: " << minVariance << endl;
+					minVariance = stats.variance;
+					meanWithSmallestVariance = stats.mean;
 				}
 			}
 
 			// Set output pixel to the mean of the region with the smallest variance
-			output.at<uchar>(y, x) = saturate_cast<uchar>(means[lowestVarianceIndex]);
+			output.at<uchar>(y, x) = saturate_cast<uchar>(meanWithSmallestVariance);
 		}
 	}
 
