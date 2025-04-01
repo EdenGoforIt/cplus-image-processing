@@ -10,12 +10,29 @@
 using namespace cv;
 using namespace std;
 
+// First chracter is space
 char encodingArray[64] = {' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'w', 'z',
 													'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z',
 													'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'};
 
+// Simple 8 color code Hash map
+map<Vec3b, string> colorMap = {
+		{{0, 0, 0}, "000"},			 // Black
+		{{255, 0, 0}, "100"},		 // Red
+		{{0, 255, 0}, "010"},		 // Green
+		{{0, 0, 255}, "001"},		 // Blue
+		{{255, 255, 0}, "110"},	 // Yellow
+		{{255, 0, 255}, "101"},	 // Magenta
+		{{0, 255, 255}, "011"},	 // Cyan
+		{{255, 255, 255}, "111"} // White
+};
+
 string decodeBarcode(const Mat &inputImage)
 {
+	// Suppress unused parameter warning
+	(void)inputImage;
+
+	return "placeholder_value";
 }
 
 int main(int argc, char **argv)
