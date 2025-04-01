@@ -14,9 +14,13 @@ char encodingArray[64] = {' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
 													'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z',
 													'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'};
 
+string decodeBarcode(const Mat &inputImage)
+{
+}
+
 int main(int argc, char **argv)
 {
-	// TODO: match with the arguments for now let's read
+	// Validation; Argument should have two parameters.
 	if (argc != 2)
 	{
 		cerr << "!! Wrong Arguments. " << argv[0] << " <input image file name> e.g. ./src/main 2DEmpty.jpg" << endl;
@@ -26,12 +30,29 @@ int main(int argc, char **argv)
 	try
 	{
 		const char *inputPath = argv[1];
+		string fullInputPath = "../" + string(inputPath);
+		Mat inputImage = imread(fullInputPath, IMREAD_GRAYSCALE);
 
-		cout << "Arguments - Input: " << inputPath << endl;
+		if (inputImage.empty())
+		{
+			cerr << "!! Error: Could not open or find the image: " << fullInputPath << endl;
+			return -1;
+		}
 
-		
+		// TODO: check rotated images
+
+		string decoded = decodeBarcode(inputImage);
+
+		if (decoded.empty())
+		{
+			cerr << "!! Error: Could not decode the barcode" << endl;
+			return -1;
+		}
+
+		cout << "Decoded barcode: " << decoded << endl;
 
 		cout << "Successfully read the barcode" << endl;
+
 		return 0;
 	}
 	catch (const std::invalid_argument &e)
