@@ -88,20 +88,12 @@ Rect detectBarcodeArea(const Mat &image)
 	threshold(gray, thresh, 220, 255, THRESH_BINARY_INV);
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
 	morphologyEx(thresh, thresh, MORPH_CLOSE, kernel);
-	vector<vector<Point>> contours;
-	findContours(thresh, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-	Rect largest;
-	int maxArea = 0;
-	for (auto &c : contours)
-	{
-		Rect r = boundingRect(c);
-		if (r.area() > maxArea)
-		{
-			maxArea = r.area();
-			largest = r;
-		}
-	}
-	return largest;
+	vector<Point> points;
+	findNonZero(thresh, points);
+	if (points.empty())
+		return Rect(); // Return empty rectangle if no white pixels are found
+	Rect bbox = boundingRect(points);
+	return bbox;
 }
 
 string decodeBarcode(const Mat &image)
