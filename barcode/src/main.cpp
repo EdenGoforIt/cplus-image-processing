@@ -76,7 +76,9 @@ Vec3b findClosestColor(Vec3b pixel)
 
 	for (const auto &color : eightColorMap)
 	{
-		int distance = norm(pixel - color.first);
+		Vec3i pixelSigned = static_cast<Vec3i>(pixel);
+		Vec3i colorSigned = static_cast<Vec3i>(color.first);
+		int distance = norm(pixelSigned - colorSigned);
 		if (distance < minimumDistance)
 		{
 			minimumDistance = distance;
@@ -132,7 +134,7 @@ string decodeBarcode(const Mat &image)
 	logFile << "[decodeBarcode] [Debug]: Border Rectangle: x=" << roughBorderRectangle.x << ", y=" << roughBorderRectangle.y << ", w=" << roughBorderRectangle.width << ", h=" << roughBorderRectangle.height << endl;
 	logFile << "[decodeBarcode] [Debug]: Square size: " << squareWidth << "x" << squareHeight << endl;
 	logFile << "[decodeBarcode] [Debug]: Offset: " << offsetX << ", " << offsetY << endl;
-
+	logFile << endl;
 	// Debug
 	Mat debugImg = image.clone();
 
@@ -166,10 +168,18 @@ string decodeBarcode(const Mat &image)
 			logFile << "[decodeBarcode] [DEBUG]: pixel: (" << (int)pixel[0] << "," << (int)pixel[1] << "," << (int)pixel[2] << ")\n";
 			logFile << "[decodeBarcode] [DEBUG]: quantized: (" << (int)quantized[0] << "," << (int)quantized[1] << "," << (int)quantized[2] << ")\n";
 			logFile << "[decodeBarcode] [DEBUG]: bits: " << bits << endl;
+			logFile << endl;
 
 			bitsList.push_back(bits);
 		}
 	}
+
+	logFile << "[decodeBarcode] [DEBUG]: Bits list: " << endl;
+	for (const auto &bits : bitsList)
+	{
+		logFile << bits << " ";
+	}
+	logFile << endl;
 
 	// Combine the bits into a single string
 	for (size_t i = 0; i + 1 < bitsList.size(); i += 2)
@@ -185,7 +195,7 @@ string decodeBarcode(const Mat &image)
 		}
 	}
 
-	logFile << "[decodeBarcode] [DEBUG]: Decoded string = " << decoded << endl;
+	logFile << "[decodeBarcode] [DEBUG]: Decoded string: " << endl;
 
 	// Debug
 	// Check if the center is calculated right. Check debug_center.jpg in ./build/debug_centeres.jpg
@@ -198,23 +208,79 @@ string decodeBarcode(const Mat &image)
 /// @return	Aligned image
 Mat alignBarcodeImage(const Mat &image)
 {
-	// Remove noise and convert to grayscale to find the corners
-	Mat gray;
-	cvtColor(image, gray, COLOR_BGR2GRAY);
-	GaussianBlur(gray, gray, Size(9, 9), 2);
+	// Convert to HSV for color segmentation (assuming blue markers)
+	Mat hsv;
+	cvtColor(image, hsv, COLOR_BGR2HSV);
+	Mat mask;
+	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask); // Blue range, adjust if markers are different
 
-	// Check if there are three circles in the image
+	// Apply Gaussian blur to reduce noise
+	GaussianBlur(mask, mask, Size(9, 9), 2);
+
+	// Detect circles using Hough Transform
 	vector<Vec3f> circles;
-	HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 5, 100, 35, 20, 40);
-	logFile << "[Align Image] [Debug]: Found circles: " << circles.size() << endl;
-
+	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
 	if (circles.size() != 3)
 	{
-		logFile << "[Align Image] [Error]: Could not find three circles in the image" << endl;
-		throw invalid_argument("[Align Image] [Error]: Could not find three circles in the image");
+		logFile << "[Align Image] [Error]: Found " << circles.size() << " circles, expected 3" << endl;
+		throw invalid_argument("[Align Image] [Error]: Could not find exactly three circles");
 	}
 
-	return image;
+	// Extract circle centers
+	vector<Point2f> centers;
+	for (const auto &c : circles)
+	{
+		centers.emplace_back(c[0], c[1]);
+	}
+
+	// Identify the right-angle marker (bottom-left)
+	Point2f rightAngle, topLeft, bottomRight;
+	double d01 = norm(centers[0] - centers[1]);
+	double d02 = norm(centers[0] - centers[2]);
+	double d12 = norm(centers[1] - centers[2]);
+
+	// Use a smaller threshold for precision, adjusted for floating-point
+	if (abs(d01 * d01 + d02 * d02 - d12 * d12) < 1e-3)
+	{
+		rightAngle = centers[0];
+		topLeft = centers[1];
+		bottomRight = centers[2];
+	}
+	else if (abs(d01 * d01 + d12 * d12 - d02 * d02) < 1e-3)
+	{
+		rightAngle = centers[1];
+		topLeft = centers[0];
+		bottomRight = centers[2];
+	}
+	else if (abs(d02 * d02 + d12 * d12 - d01 * d01) < 1e-3)
+	{
+		rightAngle = centers[2];
+		topLeft = centers[0];
+		bottomRight = centers[1];
+	}
+	else
+	{
+		logFile << "[Align Image] [Error]: No right-angle triangle found" << endl;
+		throw invalid_argument("[Align Image] [Error]: No right-angle triangle found");
+	}
+
+	// Define source points from detected markers
+	vector<Point2f> src = {topLeft, rightAngle, bottomRight};
+
+	// Define destination points for a 47x47 grid (0-based indexing: 0 to 46)
+	float gridSizeF = 46.0f;
+	vector<Point2f> dst = {
+			Point2f(0, 0),								// Top-left
+			Point2f(0, gridSizeF),				// Bottom-left
+			Point2f(gridSizeF, gridSizeF) // Bottom-right
+	};
+
+	// Compute and apply affine transformation
+	Mat affine = getAffineTransform(src, dst);
+	Mat aligned;
+	warpAffine(image, aligned, affine, Size(47, 47)); // Output size matches grid
+
+	return aligned;
 }
 
 int main(int argc, char **argv)
@@ -239,8 +305,8 @@ int main(int argc, char **argv)
 		}
 
 		// Based on the assumption that the image is full size without any white padding or border
-		Mat alignedImage = alignBarcodeImage(inputImage);
-		string decoded = decodeBarcode(alignedImage);
+		// Mat alignedImage = alignBarcodeImage(inputImage);
+		string decoded = decodeBarcode(inputImage);
 
 		if (decoded.empty())
 		{
@@ -248,7 +314,8 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		cout << "[main] [Debug] Decoded barcode: " << decoded << endl;
+		cout << "[main] [Debug] Decoded barcode: " << endl;
+		cout << decoded << endl;
 
 		cout << "[main] [Debug] Successfully processed the barcode" << endl;
 
