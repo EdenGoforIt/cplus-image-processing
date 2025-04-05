@@ -12,6 +12,7 @@ using namespace std;
 
 int gridSize = 47;
 
+// Color map for 8 colors to avoid magic strings
 struct ColorMap
 {
 	const Vec3b black = {0, 0, 0};
@@ -35,7 +36,7 @@ struct Vec3bComparator
 		return a[2] < b[2];
 	}
 };
-// First chracter is space
+// Encdoing Array table. First chracter is space.
 char encodingArray[64] = {' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'w', 'z',
 													'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z',
 													'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'};
@@ -52,6 +53,10 @@ map<Vec3b, string, Vec3bComparator> eightColorMap = {
 		{colorMap.white, "111"}		 // White
 };
 
+/// @brief The marker zone is the 6x6 square in the top-left, bottom-left, and bottom-right corners of the barcode.
+/// @param row Grid row
+/// @param col Grid column
+/// @return if the square is in the marker zone
 bool isInMarkerZone(int row, int col)
 {
 	// 6x6 markers excluded in 47x47 grid
@@ -81,6 +86,9 @@ Vec3b findClosestColor(Vec3b pixel)
 	return closestColor;
 }
 
+/// @brief Detect the area of the barcode in the image. This is necessary as the square is bordered with black with some width
+/// @param image The input image to detect the barcode area
+/// @return The bounding rectangle of the detected barcode area
 Rect detectBarcodeArea(const Mat &image)
 {
 	Mat gray, thresh;
@@ -100,47 +108,72 @@ string decodeBarcode(const Mat &image)
 {
 	ofstream logFile("log.txt");
 	string decoded;
+
+	// Check the offset of the image. Because the image is filled with black border, we need to exclude rough border width
 	Rect roi = detectBarcodeArea(image);
 	double squareWidth = roi.width / static_cast<double>(gridSize);
 	double squareHeight = roi.height / static_cast<double>(gridSize);
 	double offsetX = roi.x;
 	double offsetY = roi.y;
+
 	vector<string> bitsList;
+
+	// Debug
 	logFile << "Image size: " << image.cols << "x" << image.rows << endl;
 	logFile << "ROI: x=" << roi.x << ", y=" << roi.y << ", w=" << roi.width << ", h=" << roi.height << endl;
 	logFile << "Square size: " << squareWidth << "x" << squareHeight << endl;
 	logFile << "Offset: " << offsetX << ", " << offsetY << endl;
+
 	Mat debugImg = image.clone();
 	for (int y = 0; y < gridSize; y++)
 	{
 		for (int x = 0; x < gridSize; x++)
 		{
+			// 6x6 markers excluded in 47x47 grid
 			if (isInMarkerZone(y, x))
+			{
 				continue;
+			}
+
 			double x0 = offsetX + x * squareWidth;
 			double x1 = offsetX + (x + 1) * squareWidth;
 			double y0 = offsetY + y * squareHeight;
 			double y1 = offsetY + (y + 1) * squareHeight;
 			Point center(round((x0 + x1) / 2.0), round((y0 + y1) / 2.0));
 			circle(debugImg, center, 1, Scalar(0, 0, 255), FILLED);
+
 			Vec3b pixel = image.at<Vec3b>(center);
+			// Quantize the pixel color to the closest color in the 8 color map
 			Vec3b quantized = findClosestColor(pixel);
+			// Convert the appropriate color to a string of bits
 			string bits = eightColorMap[quantized];
+
+			// Debug
 			logFile << "[DEBUG] square (" << x << "," << y << ") center: " << center << endl;
 			logFile << "  pixel: (" << (int)pixel[0] << "," << (int)pixel[1] << "," << (int)pixel[2] << ")\n";
 			logFile << "  quantized: (" << (int)quantized[0] << "," << (int)quantized[1] << "," << (int)quantized[2] << ")\n";
 			logFile << "  bits: " << bits << endl;
+
 			bitsList.push_back(bits);
 		}
 	}
+
+	// Combine the bits into a single string
 	for (size_t i = 0; i + 1 < bitsList.size(); i += 2)
 	{
+		// Bit is composed of two colors
 		string bits = bitsList[i] + bitsList[i + 1];
+		// Convert the 6 bits to a number
 		int index = bitset<6>(bits).to_ulong();
+		// 2^6 = 64. Double check the index
 		if (index < 64)
+		{
 			decoded += encodingArray[index];
+		}
 	}
 	logFile << "Decoded string = " << decoded << endl;
+
+	// Check if the center is calculated right. Check debug_center.jpg in ./build/debug_centeres.jpg
 	imwrite("debug_centers.jpg", debugImg);
 	return decoded;
 }
