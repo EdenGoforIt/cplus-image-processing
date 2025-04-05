@@ -11,6 +11,7 @@ using namespace cv;
 using namespace std;
 
 int gridSize = 47;
+ofstream logFile("log.txt");
 
 // Color map for 8 colors to avoid magic strings
 struct ColorMap
@@ -94,42 +95,52 @@ Rect detectBarcodeArea(const Mat &image)
 	Mat gray, thresh;
 	cvtColor(image, gray, COLOR_BGR2GRAY);
 	threshold(gray, thresh, 220, 255, THRESH_BINARY_INV);
+	// Use morphological operations to close gaps in the barcode
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
 	morphologyEx(thresh, thresh, MORPH_CLOSE, kernel);
 	vector<Point> points;
 	findNonZero(thresh, points);
+	// Return empty rectangle if no white pixels are found
 	if (points.empty())
-		return Rect(); // Return empty rectangle if no white pixels are found
+	{
+		return Rect();
+	}
+
 	Rect bbox = boundingRect(points);
 	return bbox;
 }
 
+/// @brief Decode the barcode from the provided image.
+/// @param image Image
+/// @return Decoded string
+/// @note Not removing debug code code as accuracy is more important than performance
 string decodeBarcode(const Mat &image)
 {
-	ofstream logFile("log.txt");
 	string decoded;
 
 	// Check the offset of the image. Because the image is filled with black border, we need to exclude rough border width
-	Rect roi = detectBarcodeArea(image);
-	double squareWidth = roi.width / static_cast<double>(gridSize);
-	double squareHeight = roi.height / static_cast<double>(gridSize);
-	double offsetX = roi.x;
-	double offsetY = roi.y;
+	Rect roughBorderRectangle = detectBarcodeArea(image);
+	double squareWidth = roughBorderRectangle.width / static_cast<double>(gridSize);
+	double squareHeight = roughBorderRectangle.height / static_cast<double>(gridSize);
+	double offsetX = roughBorderRectangle.x;
+	double offsetY = roughBorderRectangle.y;
 
 	vector<string> bitsList;
 
 	// Debug
-	logFile << "Image size: " << image.cols << "x" << image.rows << endl;
-	logFile << "ROI: x=" << roi.x << ", y=" << roi.y << ", w=" << roi.width << ", h=" << roi.height << endl;
-	logFile << "Square size: " << squareWidth << "x" << squareHeight << endl;
-	logFile << "Offset: " << offsetX << ", " << offsetY << endl;
+	logFile << "[decodeBarcode] [Debug]: Image size: " << image.cols << "x" << image.rows << endl;
+	logFile << "[decodeBarcode] [Debug]: Border Rectangle: x=" << roughBorderRectangle.x << ", y=" << roughBorderRectangle.y << ", w=" << roughBorderRectangle.width << ", h=" << roughBorderRectangle.height << endl;
+	logFile << "[decodeBarcode] [Debug]: Square size: " << squareWidth << "x" << squareHeight << endl;
+	logFile << "[decodeBarcode] [Debug]: Offset: " << offsetX << ", " << offsetY << endl;
 
+	// Debug
 	Mat debugImg = image.clone();
+
 	for (int y = 0; y < gridSize; y++)
 	{
 		for (int x = 0; x < gridSize; x++)
 		{
-			// 6x6 markers excluded in 47x47 grid
+			// 6x6 markers excluded in 47x47 grid; one top-left, one bottom-left, and one bottom-right
 			if (isInMarkerZone(y, x))
 			{
 				continue;
@@ -140,6 +151,8 @@ string decodeBarcode(const Mat &image)
 			double y0 = offsetY + y * squareHeight;
 			double y1 = offsetY + (y + 1) * squareHeight;
 			Point center(round((x0 + x1) / 2.0), round((y0 + y1) / 2.0));
+
+			// Debug
 			circle(debugImg, center, 1, Scalar(0, 0, 255), FILLED);
 
 			Vec3b pixel = image.at<Vec3b>(center);
@@ -149,10 +162,10 @@ string decodeBarcode(const Mat &image)
 			string bits = eightColorMap[quantized];
 
 			// Debug
-			logFile << "[DEBUG] square (" << x << "," << y << ") center: " << center << endl;
-			logFile << "  pixel: (" << (int)pixel[0] << "," << (int)pixel[1] << "," << (int)pixel[2] << ")\n";
-			logFile << "  quantized: (" << (int)quantized[0] << "," << (int)quantized[1] << "," << (int)quantized[2] << ")\n";
-			logFile << "  bits: " << bits << endl;
+			logFile << "[decodeBarcode] [DEBUG]: square (" << x << "," << y << ") center: " << center << endl;
+			logFile << "[decodeBarcode] [DEBUG]: pixel: (" << (int)pixel[0] << "," << (int)pixel[1] << "," << (int)pixel[2] << ")\n";
+			logFile << "[decodeBarcode] [DEBUG]: quantized: (" << (int)quantized[0] << "," << (int)quantized[1] << "," << (int)quantized[2] << ")\n";
+			logFile << "[decodeBarcode] [DEBUG]: bits: " << bits << endl;
 
 			bitsList.push_back(bits);
 		}
@@ -171,11 +184,37 @@ string decodeBarcode(const Mat &image)
 			decoded += encodingArray[index];
 		}
 	}
-	logFile << "Decoded string = " << decoded << endl;
 
+	logFile << "[decodeBarcode] [DEBUG]: Decoded string = " << decoded << endl;
+
+	// Debug
 	// Check if the center is calculated right. Check debug_center.jpg in ./build/debug_centeres.jpg
 	imwrite("debug_centers.jpg", debugImg);
 	return decoded;
+}
+
+/// @brief Align the barcode image to the correct orientation using three corners; top-left, bottom-left, and bottom-right.
+/// @param image Original image
+/// @return	Aligned image
+Mat alignBarcodeImage(const Mat &image)
+{
+	// Remove noise and convert to grayscale to find the corners
+	Mat gray;
+	cvtColor(image, gray, COLOR_BGR2GRAY);
+	GaussianBlur(gray, gray, Size(9, 9), 2);
+
+	// Check if there are three circles in the image
+	vector<Vec3f> circles;
+	HoughCircles(gray, circles, HOUGH_GRADIENT, 1, gray.rows / 5, 100, 35, 20, 40);
+	logFile << "[Align Image] [Debug]: Found circles: " << circles.size() << endl;
+
+	if (circles.size() != 3)
+	{
+		logFile << "[Align Image] [Error]: Could not find three circles in the image" << endl;
+		throw invalid_argument("[Align Image] [Error]: Could not find three circles in the image");
+	}
+
+	return image;
 }
 
 int main(int argc, char **argv)
@@ -183,7 +222,7 @@ int main(int argc, char **argv)
 	// Validation; Argument should have two parameters.
 	if (argc != 2)
 	{
-		cerr << "!! Wrong Arguments. " << argv[0] << " <input image file name> e.g. ./src/main 2DEmpty.jpg" << endl;
+		cerr << "[main] [Error]: " << argv[0] << " <input image file name> e.g. ./src/main 2DEmpty.jpg" << endl;
 		return -1;
 	}
 
@@ -195,44 +234,46 @@ int main(int argc, char **argv)
 
 		if (inputImage.empty())
 		{
-			cerr << "!! Error: Could not open or find the image: " << fullInputPath << endl;
+			cerr << "[main] [Error]: Could not open or find the image: " << fullInputPath << endl;
 			return -1;
 		}
 
-		// TODO: check rotated images
-
-		string decoded = decodeBarcode(inputImage);
+		// Based on the assumption that the image is full size without any white padding or border
+		Mat alignedImage = alignBarcodeImage(inputImage);
+		string decoded = decodeBarcode(alignedImage);
 
 		if (decoded.empty())
 		{
-			cerr << "!! Error: Could not decode the barcode" << endl;
+			cerr << "[main] [Error]: Could not decode the barcode" << endl;
 			return -1;
 		}
 
-		cout << "Decoded barcode: " << decoded << endl;
+		cout << "[main] [Debug] Decoded barcode: " << decoded << endl;
 
-		cout << "Successfully read the barcode" << endl;
+		cout << "[main] [Debug] Successfully processed the barcode" << endl;
+
+		logFile.close();
 
 		return 0;
 	}
 	catch (const std::invalid_argument &e)
 	{
-		cerr << "Invalid argument Exception: " << e.what() << "\n";
+		cerr << "[main] [Error]: Invalid argument Exception: " << e.what() << "\n";
 		return -1;
 	}
 	catch (const cv::Exception &e)
 	{
-		cerr << "OpenCV Exception: " << e.what() << std::endl;
+		cerr << "[main] [Error]: OpenCV Exception: " << e.what() << std::endl;
 		return -1;
 	}
 	catch (const std::exception &e)
 	{
-		cerr << "Standard Exception: " << e.what() << std::endl;
+		cerr << "[main] Error: Standard Exception: " << e.what() << std::endl;
 		return -1;
 	}
 	catch (...)
 	{
-		cerr << "An unknown error occurred" << std::endl;
+		cerr << "[main] [Error]: An unknown error occurred" << std::endl;
 		return -1;
 	}
 }
