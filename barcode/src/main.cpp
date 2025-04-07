@@ -174,6 +174,7 @@ string decodeBarcode(const Mat &image)
 		}
 	}
 
+	// Debug
 	logFile << "[decodeBarcode] [DEBUG]: Bits list: " << endl;
 	for (const auto &bits : bitsList)
 	{
@@ -196,28 +197,25 @@ string decodeBarcode(const Mat &image)
 	}
 
 	logFile << "[decodeBarcode] [DEBUG]: Decoded string: " << endl;
+	logFile << decoded << endl;
+	cout << decoded << endl;
+	logFile << endl;
 
 	// Debug
-	// Check if the center is calculated right. Check debug_center.jpg in ./build/debug_centeres.jpg
 	imwrite("debug_centers.jpg", debugImg);
 	return decoded;
 }
 
-/// @brief Align the barcode image to the correct orientation using three corners; top-left, bottom-left, and bottom-right.
-/// @param image Original image
-/// @return	Aligned image
 Mat alignBarcodeImage(const Mat &image)
 {
-	// Convert to HSV for color segmentation (assuming blue markers)
 	Mat hsv;
 	cvtColor(image, hsv, COLOR_BGR2HSV);
 	Mat mask;
-	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask); // Blue range, adjust if markers are different
+	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask); // Detect blue markers
 
-	// Apply Gaussian blur to reduce noise
+	// Blur to reduce noise and improve circle detection
 	GaussianBlur(mask, mask, Size(9, 9), 2);
 
-	// Detect circles using Hough Transform
 	vector<Vec3f> circles;
 	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
 	if (circles.size() != 3)
@@ -226,37 +224,43 @@ Mat alignBarcodeImage(const Mat &image)
 		throw invalid_argument("[Align Image] [Error]: Could not find exactly three circles");
 	}
 
-	// Extract circle centers
+	// Extract centers only
 	vector<Point2f> centers;
 	for (const auto &c : circles)
 	{
 		centers.emplace_back(c[0], c[1]);
 	}
 
-	// Identify the right-angle marker (bottom-left)
+	// Determine right-angle triangle (bottom-left marker should be the right angle)
+	Point2f A = centers[0], B = centers[1], C = centers[2];
 	Point2f rightAngle, topLeft, bottomRight;
-	double d01 = norm(centers[0] - centers[1]);
-	double d02 = norm(centers[0] - centers[2]);
-	double d12 = norm(centers[1] - centers[2]);
+	double dAB = norm(A - B);
+	double dAC = norm(A - C);
+	double dBC = norm(B - C);
 
-	// Use a smaller threshold for precision, adjusted for floating-point
-	if (abs(d01 * d01 + d02 * d02 - d12 * d12) < 1e-3)
+	auto isRightTriangle = [](double a2, double b2, double c2)
 	{
-		rightAngle = centers[0];
-		topLeft = centers[1];
-		bottomRight = centers[2];
+		double relError = fabs(a2 + b2 - c2) / c2;
+		return relError < 0.05; // 5% tolerance
+	};
+
+	if (isRightTriangle(dAB * dAB, dAC * dAC, dBC * dBC))
+	{
+		rightAngle = A;
+		topLeft = B;
+		bottomRight = C;
 	}
-	else if (abs(d01 * d01 + d12 * d12 - d02 * d02) < 1e-3)
+	else if (isRightTriangle(dAB * dAB, dBC * dBC, dAC * dAC))
 	{
-		rightAngle = centers[1];
-		topLeft = centers[0];
-		bottomRight = centers[2];
+		rightAngle = B;
+		topLeft = A;
+		bottomRight = C;
 	}
-	else if (abs(d02 * d02 + d12 * d12 - d01 * d01) < 1e-3)
+	else if (isRightTriangle(dAC * dAC, dBC * dBC, dAB * dAB))
 	{
-		rightAngle = centers[2];
-		topLeft = centers[0];
-		bottomRight = centers[1];
+		rightAngle = C;
+		topLeft = A;
+		bottomRight = B;
 	}
 	else
 	{
@@ -264,22 +268,30 @@ Mat alignBarcodeImage(const Mat &image)
 		throw invalid_argument("[Align Image] [Error]: No right-angle triangle found");
 	}
 
-	// Define source points from detected markers
+	// Define source and destination points
 	vector<Point2f> src = {topLeft, rightAngle, bottomRight};
 
-	// Define destination points for a 47x47 grid (0-based indexing: 0 to 46)
-	float gridSizeF = 46.0f;
+	cout << "[Align Image] [Debug]: Top-left: " << topLeft << endl;
+	cout << "[Align Image] [Debug]: Right-angle: " << rightAngle << endl;
+	cout << "[Align Image] [Debug]: Bottom-right: " << bottomRight << endl;
+
+	// Set destination points to a full-size target like 940x940 for better quality
+	float targetCanvas = 1200.0f;
+	float barcodeRegion = 940.0f;
+	float padding = (targetCanvas - barcodeRegion) / 2.0f; // 130px
+
 	vector<Point2f> dst = {
-			Point2f(0, 0),								// Top-left
-			Point2f(0, gridSizeF),				// Bottom-left
-			Point2f(gridSizeF, gridSizeF) // Bottom-right
+			Point2f(padding, padding),																// top-left
+			Point2f(padding, padding + barcodeRegion),								// bottom-left
+			Point2f(padding + barcodeRegion, padding + barcodeRegion) // bottom-right
 	};
 
-	// Compute and apply affine transformation
 	Mat affine = getAffineTransform(src, dst);
 	Mat aligned;
-	warpAffine(image, aligned, affine, Size(47, 47)); // Output size matches grid
+	warpAffine(image, aligned, affine, Size(targetCanvas, targetCanvas), INTER_LINEAR, BORDER_CONSTANT, Scalar(255, 255, 255));
 
+	// Debug
+	imwrite("debug-rotated.jpg", aligned);
 	return aligned;
 }
 
@@ -305,17 +317,14 @@ int main(int argc, char **argv)
 		}
 
 		// Based on the assumption that the image is full size without any white padding or border
-		// Mat alignedImage = alignBarcodeImage(inputImage);
-		string decoded = decodeBarcode(inputImage);
+		Mat alignedImage = alignBarcodeImage(inputImage);
+		string decoded = decodeBarcode(alignedImage);
 
 		if (decoded.empty())
 		{
 			cerr << "[main] [Error]: Could not decode the barcode" << endl;
 			return -1;
 		}
-
-		cout << "[main] [Debug] Decoded barcode: " << endl;
-		cout << decoded << endl;
 
 		cout << "[main] [Debug] Successfully processed the barcode" << endl;
 
