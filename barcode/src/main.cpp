@@ -268,6 +268,18 @@ Mat alignBarcodeImage(const Mat &image)
 		throw invalid_argument("[Align Image] [Error]: No right-angle triangle found");
 	}
 
+	// Explicitly assign top-left and bottom-right based on coordinates
+	// Top-left should have the smallest y-coordinate
+	// Bottom-right should have the largest x-coordinate
+	if (topLeft.y > bottomRight.y)
+	{
+		swap(topLeft, bottomRight);
+	}
+	if (topLeft.x > bottomRight.x)
+	{
+		swap(topLeft, bottomRight);
+	}
+
 	// Define source and destination points
 	vector<Point2f> src = {topLeft, rightAngle, bottomRight};
 
