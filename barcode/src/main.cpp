@@ -271,10 +271,6 @@ Mat alignBarcodeImage(const Mat &image)
 	// Define source and destination points
 	vector<Point2f> src = {topLeft, rightAngle, bottomRight};
 
-	cout << "[Align Image] [Debug]: Top-left: " << topLeft << endl;
-	cout << "[Align Image] [Debug]: Right-angle: " << rightAngle << endl;
-	cout << "[Align Image] [Debug]: Bottom-right: " << bottomRight << endl;
-
 	// Set destination points to a full-size target like 940x940 for better quality
 	float targetCanvas = 1200.0f;
 	float barcodeRegion = 940.0f;
