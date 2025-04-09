@@ -8,11 +8,45 @@ using namespace std;
 
 int main()
 {
-	Mat image = imread("../akiyo1.jpg");
+	Mat input = imread("../peppers.bmp");
+
+	// Color segmentation
+	// Mat output = Mat::zeros(input.size(), input.type());
+
+	// for (int y = 0; y < input.rows; y++)
+	// {
+	// 	for (int x = 0; x < input.cols; x++)
+	// 	{
+	// 		Vec3b pixel = input.at<Vec3b>(y, x);
+	// 		int g = pixel[1];
+	// 		int r = pixel[2];
+	// 		Vec3b &out = output.at<Vec3b>(y, x);
+
+	// 		if (r > 240 && g < 200)
+	// 		{ // Orange
+	// 			out = Vec3b(0, 128, 255);
+	// 		}
+	// 		else if (r > 200 && g > 200)
+	// 		{ // Yellow
+	// 			out = Vec3b(0, 255, 255);
+	// 		}
+	// 		else if (g > 100 && r < 100)
+	// 		{ // Green
+	// 			out = Vec3b(0, 255, 0);
+	// 		}
+	// 		else if (r > 100 && g < 100)
+	// 		{ // Red
+	// 			out = Vec3b(0, 0, 255);
+	// 		}
+	// 	}
+	// }
+
+	// imshow("Original", input);
+	// imshow("RGB Segmentation", output);
 
 	// HSV to RGB
 	// Mat hsv;
-	// cvtColor(image, hsv, COLOR_BGR2HSV);
+	// cvtColor(input, hsv, COLOR_BGR2HSV);
 
 	// vector<Mat> channels(3);
 	// split(hsv, channels);
@@ -20,7 +54,7 @@ int main()
 	// imshow("Saturation", channels[1]);
 	// imshow("Value", channels[2]);
 
-	// Mat classified = Mat::zeros(image.size(), image.type());
+	// Mat classified = Mat::zeros(input.size(), input.type());
 	// for (int y = 0; y < hsv.rows; y++)
 	// {
 	// 	for (int x = 0; x < hsv.cols; x++)
@@ -58,12 +92,12 @@ int main()
 	// RGB to HSV
 
 	// RGB
-	// It's about showing the intensity of rgb into the image; if blue colors are intense, it shows as white
-	// Mat image = imread("../akiyo1.jpg");
+	// It's about showing the intensity of rgb into the input; if blue colors are intense, it shows as white
+	// Mat input = imread("../akiyo1.jpg");
 	// vector<Mat> channels(3);
-	// split(image, channels);
+	// split(input, channels);
 
-	// imshow("original", image);
+	// imshow("original", input);
 	// imshow("Blue", channels[0]);
 	// imshow("Green", channels[1]);
 	// imshow("Red", channels[2]);
