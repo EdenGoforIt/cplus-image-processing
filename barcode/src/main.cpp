@@ -338,12 +338,11 @@ int main(int argc, char **argv)
 	try
 	{
 		const char *inputPath = argv[1];
-		string fullInputPath = "../" + string(inputPath);
-		Mat inputImage = imread(fullInputPath, IMREAD_COLOR);
+		Mat inputImage = imread(inputPath, IMREAD_COLOR);
 
 		if (inputImage.empty())
 		{
-			cerr << "[main] [Error]: Could not open or find the image: " << fullInputPath << endl;
+			cerr << "[main] [Error]: Could not open or find the image: " << inputPath << endl;
 			return -1;
 		}
 
@@ -359,6 +358,7 @@ int main(int argc, char **argv)
 
 		cout << "[main] [Debug] Successfully processed the barcode" << endl;
 
+		// Debug
 		logFile.close();
 
 		return 0;
