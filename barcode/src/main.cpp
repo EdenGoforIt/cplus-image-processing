@@ -31,9 +31,14 @@ struct Vec3bComparator
 	bool operator()(const Vec3b &a, const Vec3b &b) const
 	{
 		if (a[0] != b[0])
+		{
 			return a[0] < b[0];
+		}
 		if (a[1] != b[1])
+		{
 			return a[1] < b[1];
+		}
+
 		return a[2] < b[2];
 	}
 };
@@ -57,7 +62,7 @@ map<Vec3b, string, Vec3bComparator> eightColorMap = {
 /// @brief The marker zone is the 6x6 square in the top-left, bottom-left, and bottom-right corners of the barcode.
 /// @param row Grid row
 /// @param col Grid column
-/// @return if the square is in the marker zone
+/// @return return true if the square is in the marker zone, otherwise false
 bool isInMarkerZone(int row, int col)
 {
 	// 6x6 markers excluded in 47x47 grid
@@ -78,7 +83,11 @@ Vec3b findClosestColor(Vec3b pixel)
 	{
 		Vec3i pixelSigned = static_cast<Vec3i>(pixel);
 		Vec3i colorSigned = static_cast<Vec3i>(color.first);
+
+		// Check how those two colors are far apart
 		int distance = norm(pixelSigned - colorSigned);
+
+		// If found the minimum distance, update the closest color
 		if (distance < minimumDistance)
 		{
 			minimumDistance = distance;
@@ -155,11 +164,15 @@ string decodeBarcode(const Mat &image)
 			Point center(round((x0 + x1) / 2.0), round((y0 + y1) / 2.0));
 
 			// Debug
+			// Add a small dot to the image so that we can see center of the square is calculated right
+			// Which can be seen in debug image debug_centers.jpg under 'build' folder
 			circle(debugImg, center, 1, Scalar(0, 0, 255), FILLED);
 
 			Vec3b pixel = image.at<Vec3b>(center);
+
 			// Quantize the pixel color to the closest color in the 8 color map
 			Vec3b quantized = findClosestColor(pixel);
+
 			// Convert the appropriate color to a string of bits
 			string bits = eightColorMap[quantized];
 
@@ -174,7 +187,7 @@ string decodeBarcode(const Mat &image)
 		}
 	}
 
-	// Debug
+	// Debug big list
 	logFile << "[decodeBarcode] [DEBUG]: Bits list: " << endl;
 	for (const auto &bits : bitsList)
 	{
@@ -198,24 +211,29 @@ string decodeBarcode(const Mat &image)
 
 	logFile << "[decodeBarcode] [DEBUG]: Decoded string: " << endl;
 	logFile << decoded << endl;
-	cout << decoded << endl;
 	logFile << endl;
+	cout << decoded << endl;
 
 	// Debug
 	imwrite("debug_centers.jpg", debugImg);
 	return decoded;
 }
 
+/// @brief Align the image if the image is rotated
+/// @param image Input image
+/// @return return aligned image
 Mat alignBarcodeImage(const Mat &image)
 {
+	// Detect blue color for more accuracy
 	Mat hsv;
 	cvtColor(image, hsv, COLOR_BGR2HSV);
 	Mat mask;
-	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask); // Detect blue markers
+	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask);
 
 	// Blur to reduce noise and improve circle detection
 	GaussianBlur(mask, mask, Size(9, 9), 2);
 
+	// Find the circle using Hough Circles
 	vector<Vec3f> circles;
 	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
 	if (circles.size() != 3)
@@ -224,7 +242,7 @@ Mat alignBarcodeImage(const Mat &image)
 		throw invalid_argument("[Align Image] [Error]: Could not find exactly three circles");
 	}
 
-	// Extract centers only
+	// Extract centers only; c[2] will be radius
 	vector<Point2f> centers;
 	for (const auto &c : circles)
 	{
@@ -234,29 +252,31 @@ Mat alignBarcodeImage(const Mat &image)
 	// Determine right-angle triangle (bottom-left marker should be the right angle)
 	Point2f A = centers[0], B = centers[1], C = centers[2];
 	Point2f rightAngle, topLeft, bottomRight;
-	double dAB = norm(A - B);
-	double dAC = norm(A - C);
-	double dBC = norm(B - C);
+	double distanceBetweenAB = norm(A - B);
+	double distanceBetweenAC = norm(A - C);
+	double distanceBetweenBC = norm(B - C);
 
+	// Find the right angle using Pythagorean Theorem a^2 + b^2 = c^2
 	auto isRightTriangle = [](double a2, double b2, double c2)
 	{
-		double relError = fabs(a2 + b2 - c2) / c2;
-		return relError < 0.05; // 5% tolerance
+		double sum = a2 + b2;
+		double diff = abs(sum - c2);
+		return diff <= c2 * 0.05;
 	};
 
-	if (isRightTriangle(dAB * dAB, dAC * dAC, dBC * dBC))
+	if (isRightTriangle(distanceBetweenAB * distanceBetweenAB, distanceBetweenAC * distanceBetweenAC, distanceBetweenBC * distanceBetweenBC))
 	{
 		rightAngle = A;
 		topLeft = B;
 		bottomRight = C;
 	}
-	else if (isRightTriangle(dAB * dAB, dBC * dBC, dAC * dAC))
+	else if (isRightTriangle(distanceBetweenAB * distanceBetweenAB, distanceBetweenBC * distanceBetweenBC, distanceBetweenAC * distanceBetweenAC))
 	{
 		rightAngle = B;
 		topLeft = A;
 		bottomRight = C;
 	}
-	else if (isRightTriangle(dAC * dAC, dBC * dBC, dAB * dAB))
+	else if (isRightTriangle(distanceBetweenAC * distanceBetweenAC, distanceBetweenBC * distanceBetweenBC, distanceBetweenAB * distanceBetweenAB))
 	{
 		rightAngle = C;
 		topLeft = A;
@@ -271,6 +291,7 @@ Mat alignBarcodeImage(const Mat &image)
 	// Explicitly assign top-left and bottom-right based on coordinates
 	// Top-left should have the smallest y-coordinate
 	// Bottom-right should have the largest x-coordinate
+	// This is to avoid the flip of the image
 	if (topLeft.y > bottomRight.y)
 	{
 		swap(topLeft, bottomRight);
@@ -283,22 +304,24 @@ Mat alignBarcodeImage(const Mat &image)
 	// Define source and destination points
 	vector<Point2f> src = {topLeft, rightAngle, bottomRight};
 
-	// Set destination points to a full-size target like 940x940 for better quality
+	// Set destination points to a full-size square
+	// This canvas and region is based on the examples images
 	float targetCanvas = 1200.0f;
 	float barcodeRegion = 940.0f;
-	float padding = (targetCanvas - barcodeRegion) / 2.0f; // 130px
+	float padding = (targetCanvas - barcodeRegion) / 2.0f;
 
 	vector<Point2f> dst = {
-			Point2f(padding, padding),																// top-left
-			Point2f(padding, padding + barcodeRegion),								// bottom-left
-			Point2f(padding + barcodeRegion, padding + barcodeRegion) // bottom-right
+			Point2f(padding, padding),																// Top-left
+			Point2f(padding, padding + barcodeRegion),								// Bottom-left
+			Point2f(padding + barcodeRegion, padding + barcodeRegion) // Bottom-right
 	};
 
+	// Rotate based on the calculation
 	Mat affine = getAffineTransform(src, dst);
 	Mat aligned;
 	warpAffine(image, aligned, affine, Size(targetCanvas, targetCanvas), INTER_LINEAR, BORDER_CONSTANT, Scalar(255, 255, 255));
 
-	// Debug
+	// Debug: Aligned image can be seen in debug-rotated.jpg under 'build' folder
 	imwrite("debug-rotated.jpg", aligned);
 	return aligned;
 }
