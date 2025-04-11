@@ -370,17 +370,17 @@ int main(int argc, char **argv)
 	}
 	catch (const cv::Exception &e)
 	{
-		cerr << "[main] [Error]: OpenCV Exception: " << e.what() << std::endl;
+		cerr << "[main] [Error]: OpenCV Exception: " << e.what() << endl;
 		return -1;
 	}
 	catch (const std::exception &e)
 	{
-		cerr << "[main] Error: Standard Exception: " << e.what() << std::endl;
+		cerr << "[main] Error: Standard Exception: " << e.what() << endl;
 		return -1;
 	}
 	catch (...)
 	{
-		cerr << "[main] [Error]: An unknown error occurred" << std::endl;
+		cerr << "[main] [Error]: An unknown error occurred" << endl;
 		return -1;
 	}
 }
