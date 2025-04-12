@@ -17,12 +17,12 @@ ofstream logFile("log.txt");
 struct ColorMap
 {
 	const Vec3b black = {0, 0, 0};
-	const Vec3b red = {255, 0, 0};
+	const Vec3b blue = {255, 0, 0};
 	const Vec3b green = {0, 255, 0};
-	const Vec3b blue = {0, 0, 255};
-	const Vec3b yellow = {255, 255, 0};
+	const Vec3b red = {0, 0, 255};
+	const Vec3b cyan = {255, 255, 0};
 	const Vec3b magenta = {255, 0, 255};
-	const Vec3b cyan = {0, 255, 255};
+	const Vec3b yellow = {0, 255, 255};
 	const Vec3b white = {255, 255, 255};
 };
 ColorMap colorMap;
@@ -42,21 +42,52 @@ struct Vec3bComparator
 		return a[2] < b[2];
 	}
 };
+
+/// @brief Get color name
+/// @param color
+/// @return
+string getColorName(const Vec3b &color)
+{
+	if (color == colorMap.black)
+		return "black";
+	if (color == colorMap.blue)
+		return "blue";
+	if (color == colorMap.green)
+		return "green";
+	if (color == colorMap.cyan)
+		return "cyan";
+	if (color == colorMap.red)
+		return "red";
+	if (color == colorMap.magenta)
+		return "magenta";
+	if (color == colorMap.yellow)
+		return "yellow";
+	if (color == colorMap.white)
+		return "white";
+	return "unknown";
+}
 // Encdoing Array table. First chracter is space.
-char encodingArray[64] = {' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'w', 'z',
-													'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Y', 'W', 'Z',
-													'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'};
+char encodingArray[64] = {
+		' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+		'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+		'p', 'q', 'r', 's', 't', 'u', 'v', 'x',
+		'y', 'w', 'z', 'A', 'B', 'C', 'D', 'E',
+		'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+		'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
+		'V', 'X', 'Y', 'W', 'Z',
+		'0', '1', '2', '3', '4', '5', '6', '7',
+		'8', '9', '.'};
 
 // Simple 8 color code Hash map
 map<Vec3b, string, Vec3bComparator> eightColorMap = {
-		{colorMap.black, "000"},	 // Black
-		{colorMap.red, "100"},		 // Red
-		{colorMap.green, "010"},	 // Green
-		{colorMap.blue, "001"},		 // Blue
-		{colorMap.yellow, "110"},	 // Yellow
-		{colorMap.magenta, "101"}, // Magenta
-		{colorMap.cyan, "011"},		 // Cyan
-		{colorMap.white, "111"}		 // White
+		{colorMap.black, "000"},	 // black
+		{colorMap.blue, "001"},		 // blue
+		{colorMap.green, "010"},	 // green
+		{colorMap.cyan, "011"},		 // cyan
+		{colorMap.red, "100"},		 // red
+		{colorMap.magenta, "101"}, // magenta
+		{colorMap.yellow, "110"},	 // yellow
+		{colorMap.white, "111"}		 // white
 };
 
 /// @brief The marker zone is the 6x6 square in the top-left, bottom-left, and bottom-right corners of the barcode.
@@ -76,25 +107,25 @@ bool isInMarkerZone(int row, int col)
 /// @return The closest color in the colorMap
 Vec3b findClosestColor(Vec3b pixel)
 {
-	Vec3b closestColor = colorMap.black;
-	int minimumDistance = INT_MAX;
+	Vec3b closestColor = {0, 0, 0};
+	int minDist = INT_MAX;
 
-	for (const auto &color : eightColorMap)
+	for (const auto &entry : eightColorMap)
 	{
-		Vec3i pixelSigned = static_cast<Vec3i>(pixel);
-		Vec3i colorSigned = static_cast<Vec3i>(color.first);
+		Vec3b ref = entry.first;
+		int db = pixel[0] - ref[0];
+		int dg = pixel[1] - ref[1];
+		int dr = pixel[2] - ref[2];
 
-		// Check how those two colors are far apart
-		int distance = norm(pixelSigned - colorSigned);
+		// Weighted distance (tweak as needed)
+		int dist = 2 * dr * dr + 4 * dg * dg + 1 * db * db;
 
-		// If found the minimum distance, update the closest color
-		if (distance < minimumDistance)
+		if (dist < minDist)
 		{
-			minimumDistance = distance;
-			closestColor = color.first;
+			minDist = dist;
+			closestColor = ref;
 		}
 	}
-
 	return closestColor;
 }
 
@@ -147,26 +178,26 @@ string decodeBarcode(const Mat &image)
 	// Debug
 	Mat debugImg = image.clone();
 
-	for (int y = 0; y < gridSize; y++)
+	for (int row = 0; row < gridSize; row++)
 	{
-		for (int x = 0; x < gridSize; x++)
+		for (int col = 0; col < gridSize; col++)
 		{
 			// 6x6 markers excluded in 47x47 grid; one top-left, one bottom-left, and one bottom-right
-			if (isInMarkerZone(y, x))
+			if (isInMarkerZone(row, col))
 			{
 				continue;
 			}
 
-			double x0 = offsetX + x * squareWidth;
-			double x1 = offsetX + (x + 1) * squareWidth;
-			double y0 = offsetY + y * squareHeight;
-			double y1 = offsetY + (y + 1) * squareHeight;
+			double x0 = offsetX + col * squareWidth;
+			double x1 = offsetX + (col + 1) * squareWidth;
+			double y0 = offsetY + row * squareHeight;
+			double y1 = offsetY + (row + 1) * squareHeight;
 			Point center(round((x0 + x1) / 2.0), round((y0 + y1) / 2.0));
 
 			// Debug
 			// Add a small dot to the image so that we can see center of the square is calculated right
 			// Which can be seen in debug image debug_centers.jpg under 'build' folder
-			circle(debugImg, center, 1, Scalar(0, 0, 255), FILLED);
+			circle(debugImg, center, 5, Scalar(0, 0, 255), FILLED);
 
 			Vec3b pixel = image.at<Vec3b>(center);
 
@@ -177,9 +208,12 @@ string decodeBarcode(const Mat &image)
 			string bits = eightColorMap[quantized];
 
 			// Debug
-			logFile << "[decodeBarcode] [DEBUG]: square (" << x << "," << y << ") center: " << center << endl;
-			logFile << "[decodeBarcode] [DEBUG]: pixel: (" << (int)pixel[0] << "," << (int)pixel[1] << "," << (int)pixel[2] << ")\n";
-			logFile << "[decodeBarcode] [DEBUG]: quantized: (" << (int)quantized[0] << "," << (int)quantized[1] << "," << (int)quantized[2] << ")\n";
+			logFile << "[decodeBarcode] [DEBUG]: color: " << getColorName(quantized) << endl;
+			logFile << "[decodeBarcode] [DEBUG]: square (" << col << "," << row << ") center: " << center << endl;
+			logFile << "[decodeBarcode] [DEBUG]: pixel (BGR): ("
+							<< (int)pixel[0] << ","
+							<< (int)pixel[1] << ","
+							<< (int)pixel[2] << ")" << endl;
 			logFile << "[decodeBarcode] [DEBUG]: bits: " << bits << endl;
 			logFile << endl;
 
@@ -219,6 +253,19 @@ string decodeBarcode(const Mat &image)
 	return decoded;
 }
 
+/// @brief Check if the triangle is balanced
+/// @param ab Distance between A and B
+/// @param bc Distance between B and C
+/// @param ac Distance between A and C
+/// @return true if the triangle is balanced, otherwise false
+bool isTriangleDistanceBalanced(double ab, double bc, double ac)
+{
+	double maxDist = max({ab, bc, ac});
+	double minDist = min({ab, bc, ac});
+
+	return (maxDist / minDist < 2.5);
+}
+
 /// @brief Align the image if the image is rotated
 /// @param image Input image
 /// @return return aligned image
@@ -228,8 +275,8 @@ Mat alignBarcodeImage(const Mat &image)
 	Mat hsv;
 	cvtColor(image, hsv, COLOR_BGR2HSV);
 	Mat mask;
-	inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask);
-
+	// inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask);
+	inRange(hsv, Scalar(90, 50, 50), Scalar(140, 255, 255), mask);
 	// Blur to reduce noise and improve circle detection
 	GaussianBlur(mask, mask, Size(9, 9), 2);
 
@@ -255,6 +302,12 @@ Mat alignBarcodeImage(const Mat &image)
 	double distanceBetweenAB = norm(A - B);
 	double distanceBetweenAC = norm(A - C);
 	double distanceBetweenBC = norm(B - C);
+
+	if (!isTriangleDistanceBalanced(distanceBetweenAB, distanceBetweenBC, distanceBetweenAC))
+	{
+		cerr << "[Align Image] [Error]: Circle distances too unbalanced to form proper barcode frame." << endl;
+		throw invalid_argument("Circle distances too unbalanced to form proper barcode frame.");
+	}
 
 	// Find the right angle using Pythagorean Theorem a^2 + b^2 = c^2
 	auto isRightTriangle = [](double a2, double b2, double c2)
@@ -326,6 +379,10 @@ Mat alignBarcodeImage(const Mat &image)
 	return aligned;
 }
 
+/// @brief Use camera instead of image.jpg to use the camera
+/// @param argc
+/// @param argv
+/// @return
 int main(int argc, char **argv)
 {
 	// Validation; Argument should have two parameters.
@@ -338,22 +395,91 @@ int main(int argc, char **argv)
 	try
 	{
 		const char *inputPath = argv[1];
-		Mat inputImage = imread(inputPath, IMREAD_COLOR);
 
-		if (inputImage.empty())
+		if (string(inputPath) == "camera")
 		{
-			cerr << "[main] [Error]: Could not open or find the image: " << inputPath << endl;
-			return -1;
+			VideoCapture cap(0); // Open default camera
+			if (!cap.isOpened())
+			{
+				cerr << "[main] [Error]: Cannot open the camera" << endl;
+				return -1;
+			}
+
+			Mat frame;
+
+			while (true)
+			{
+				cap >> frame;
+				if (frame.empty())
+				{
+					break;
+				}
+
+				Mat aligned;
+				bool alignmentSuccessful = false;
+
+				try
+				{
+					aligned = alignBarcodeImage(frame);
+					alignmentSuccessful = true;
+				}
+				catch (...)
+				{
+					putText(frame, "Alignment Failed", Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+					imshow("Live Detection", frame);
+					waitKey(1); // optional: show failure frame briefly
+					continue;
+				}
+
+				try
+				{
+					if (alignmentSuccessful)
+					{
+						string result = decodeBarcode(aligned);
+						if (!result.empty())
+						{
+							cout << "Decoded: " << result << endl;
+							putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2);
+							imshow("Live Detection", frame);
+							waitKey(1000);
+							break;
+						}
+					}
+				}
+				catch (const exception &e)
+				{
+					cerr << "[Error]: Exception occurred while processing the frame: " << e.what() << endl;
+				}
+				catch (...)
+				{
+					cerr << "[Error]: Unknown exception while processing the frame" << endl;
+				}
+
+				imshow("Live Detection", frame);
+				int key = waitKey(30);
+				if (key == 27)
+					break; // ESC to exit
+			}
 		}
-
-		// Based on the assumption that the image is full size without any white padding or border
-		Mat alignedImage = alignBarcodeImage(inputImage);
-		string decoded = decodeBarcode(alignedImage);
-
-		if (decoded.empty())
+		else
 		{
-			cerr << "[main] [Error]: Could not decode the barcode" << endl;
-			return -1;
+			Mat inputImage = imread(inputPath, IMREAD_COLOR);
+
+			if (inputImage.empty())
+			{
+				cerr << "[main] [Error]: Could not open or find the image: " << inputPath << endl;
+				return -1;
+			}
+
+			// Based on the assumption that the image is full size without any white padding or border
+			Mat alignedImage = alignBarcodeImage(inputImage);
+			string decoded = decodeBarcode(alignedImage);
+
+			if (decoded.empty())
+			{
+				cerr << "[main] [Error]: Could not decode the barcode" << endl;
+				return -1;
+			}
 		}
 
 		cout << "[main] [Debug] Successfully processed the barcode" << endl;
