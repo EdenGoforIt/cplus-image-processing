@@ -49,21 +49,37 @@ struct Vec3bComparator
 string getColorName(const Vec3b &color)
 {
 	if (color == colorMap.black)
+	{
 		return "black";
+	}
 	if (color == colorMap.blue)
+	{
 		return "blue";
+	}
 	if (color == colorMap.green)
+	{
 		return "green";
+	}
 	if (color == colorMap.cyan)
+	{
 		return "cyan";
+	}
 	if (color == colorMap.red)
+	{
 		return "red";
+	}
 	if (color == colorMap.magenta)
+	{
 		return "magenta";
+	}
 	if (color == colorMap.yellow)
+	{
 		return "yellow";
+	}
 	if (color == colorMap.white)
+	{
 		return "white";
+	}
 	return "unknown";
 }
 // Encdoing Array table. First chracter is space.
@@ -78,17 +94,15 @@ char encodingArray[64] = {
 		'0', '1', '2', '3', '4', '5', '6', '7',
 		'8', '9', '.'};
 
-// Simple 8 color code Hash map
 map<Vec3b, string, Vec3bComparator> eightColorMap = {
-		{colorMap.black, "000"},	 // black
-		{colorMap.blue, "001"},		 // blue
-		{colorMap.green, "010"},	 // green
-		{colorMap.cyan, "011"},		 // cyan
-		{colorMap.red, "100"},		 // red
-		{colorMap.magenta, "101"}, // magenta
-		{colorMap.yellow, "110"},	 // yellow
-		{colorMap.white, "111"}		 // white
-};
+		{colorMap.black, "000"},
+		{colorMap.blue, "001"},
+		{colorMap.green, "010"},
+		{colorMap.cyan, "011"},
+		{colorMap.red, "100"},
+		{colorMap.magenta, "101"},
+		{colorMap.yellow, "110"},
+		{colorMap.white, "111"}};
 
 /// @brief The marker zone is the 6x6 square in the top-left, bottom-left, and bottom-right corners of the barcode.
 /// @param row Grid row
@@ -110,20 +124,18 @@ Vec3b findClosestColor(Vec3b pixel)
 	Vec3b closestColor = {0, 0, 0};
 	int minDist = INT_MAX;
 
-	for (const auto &entry : eightColorMap)
+	for (const auto &color : eightColorMap)
 	{
-		Vec3b ref = entry.first;
-		int db = pixel[0] - ref[0];
-		int dg = pixel[1] - ref[1];
-		int dr = pixel[2] - ref[2];
+		Vec3i pixelInt = Vec3i(pixel);
+		Vec3i colorInt = Vec3i(color.first);
 
-		// Weighted distance (tweak as needed)
-		int dist = 2 * dr * dr + 4 * dg * dg + 1 * db * db;
+		// Euclidean distance to find the distance betwen pixels
+		int dist = norm(pixelInt - colorInt);
 
 		if (dist < minDist)
 		{
 			minDist = dist;
-			closestColor = ref;
+			closestColor = colorInt;
 		}
 	}
 	return closestColor;
