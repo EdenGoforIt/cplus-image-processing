@@ -453,13 +453,15 @@ int main(int argc, char **argv)
 					}
 					if (circles.size() != 3)
 					{
+						string msg = "Circles found: " + to_string(circles.size()) + " / 3";
+						putText(frame, msg, Point(50, 50),
+										FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
 						throw runtime_error("Not exactly 3 circles found");
 					}
 				}
 				catch (...)
 				{
-					putText(frame, "Could not find the circles", Point(50, 50),
-									FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+
 					imshow("Live Detection", frame);
 					int key = waitKey(10);
 					if (key > 0)
