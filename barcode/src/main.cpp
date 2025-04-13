@@ -424,7 +424,10 @@ int main(int argc, char **argv)
 		// For dynamic detection through the camera
 		if (string(inputPath) == "camera")
 		{
-			VideoCapture cap(0); // Open default camera
+			VideoCapture cap(0);
+
+			cap.set(CAP_PROP_FRAME_WIDTH, 1280);
+			cap.set(CAP_PROP_FRAME_HEIGHT, 720);
 			if (!cap.isOpened())
 			{
 				cerr << "[main] [Error]: Cannot open the camera" << endl;
@@ -439,37 +442,60 @@ int main(int argc, char **argv)
 				if (frame.empty())
 					break;
 
-				Mat aligned;
-				bool alignmentSuccessful = false;
-				string result;
-
+				vector<Point2f> circles;
 				try
 				{
-					aligned = alignBarcodeImage(frame);
-					alignmentSuccessful = true;
+					circles = detectBlueCircles(frame);
+					for (const Point2f &center : circles)
+					{
+						circle(frame, center, 30, Scalar(0, 0, 255), 2);
+						circle(frame, center, 4, Scalar(0, 255, 0), -1);
+					}
+					if (circles.size() != 3)
+					{
+						throw runtime_error("Not exactly 3 circles found");
+					}
 				}
 				catch (...)
 				{
-					putText(frame, "Could not find the circles", Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+					putText(frame, "Could not find the circles", Point(50, 50),
+									FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+					imshow("Live Detection", frame);
+					int key = waitKey(10);
+					if (key > 0)
+						break;
+
+					continue;
+				}
+				Mat aligned;
+				try
+				{
+					aligned = alignBarcodeImage(frame);
+				}
+				catch (...)
+				{
+					putText(frame, "Alignment failed", Point(50, 100),
+									FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
+					imshow("Live Detection", frame);
+					waitKey(1);
+					continue;
 				}
 
-				if (alignmentSuccessful)
+				try
 				{
-					try
+					string result = decodeBarcode(aligned);
+					if (!result.empty())
 					{
-						result = decodeBarcode(aligned);
-						if (!result.empty())
-						{
-							putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2);
-							imshow("Live Detection", frame);
-							cout << "Decoded: " << result << endl;
-							break;
-						}
+						putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1,
+										Scalar(0, 255, 0), 2);
+						imshow("Live Detection", frame);
+						cout << "Decoded: " << result << endl;
+						break;
 					}
-					catch (...)
-					{
-						cerr << "[Error]: Decoding failed." << endl;
-					}
+				}
+				catch (...)
+				{
+					cerr << "[Error]: Decoding failed." << endl;
 				}
 
 				imshow("Live Detection", frame);
@@ -489,6 +515,7 @@ int main(int argc, char **argv)
 			}
 
 			// Based on the assumption that the image is full size without any white padding or border
+
 			Mat alignedImage = alignBarcodeImage(inputImage);
 			string decoded = decodeBarcode(alignedImage);
 
