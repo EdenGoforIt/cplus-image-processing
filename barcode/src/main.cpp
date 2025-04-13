@@ -288,7 +288,8 @@ Mat alignBarcodeImage(const Mat &image)
 	cvtColor(image, hsv, COLOR_BGR2HSV);
 	Mat mask;
 	// inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask);
-	inRange(hsv, Scalar(90, 50, 50), Scalar(140, 255, 255), mask);
+	inRange(hsv, Scalar(90, 30, 30), Scalar(140, 255, 255), mask);
+
 	// Blur to reduce noise and improve circle detection
 	GaussianBlur(mask, mask, Size(9, 9), 2);
 
@@ -408,6 +409,7 @@ int main(int argc, char **argv)
 	{
 		const char *inputPath = argv[1];
 
+		// For dynamic detection through the camera
 		if (string(inputPath) == "camera")
 		{
 			VideoCapture cap(0); // Open default camera
@@ -423,12 +425,11 @@ int main(int argc, char **argv)
 			{
 				cap >> frame;
 				if (frame.empty())
-				{
 					break;
-				}
 
 				Mat aligned;
 				bool alignmentSuccessful = false;
+				string result;
 
 				try
 				{
@@ -437,40 +438,33 @@ int main(int argc, char **argv)
 				}
 				catch (...)
 				{
-					putText(frame, "Alignment Failed", Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-					imshow("Live Detection", frame);
-					waitKey(1); // optional: show failure frame briefly
-					continue;
+					putText(frame, "Could not find the circles", Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
 				}
 
-				try
+				if (alignmentSuccessful)
 				{
-					if (alignmentSuccessful)
+					try
 					{
-						string result = decodeBarcode(aligned);
+						result = decodeBarcode(aligned);
 						if (!result.empty())
 						{
-							cout << "Decoded: " << result << endl;
 							putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2);
 							imshow("Live Detection", frame);
-							waitKey(1000);
+							cout << "Decoded: " << result << endl;
+							int key = waitKey(2000);
 							break;
 						}
 					}
-				}
-				catch (const exception &e)
-				{
-					cerr << "[Error]: Exception occurred while processing the frame: " << e.what() << endl;
-				}
-				catch (...)
-				{
-					cerr << "[Error]: Unknown exception while processing the frame" << endl;
+					catch (...)
+					{
+						cerr << "[Error]: Decoding failed." << endl;
+					}
 				}
 
 				imshow("Live Detection", frame);
-				int key = waitKey(30);
+				int key = waitKey(10);
 				if (key == 27)
-					break; // ESC to exit
+					break;
 			}
 		}
 		else
