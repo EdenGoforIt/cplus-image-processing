@@ -278,24 +278,36 @@ bool isTriangleDistanceBalanced(double ab, double bc, double ac)
 	return (maxDist / minDist < 2.5);
 }
 
+/// @brief Detect 3 blue circles (top-left, bottom-left, bottom-right)
+/// @param image Input image (BGR)
+/// @return vector of 3 circle centers if found
+vector<Point2f> detectBlueCircles(const Mat &image)
+{
+	Mat hsv;
+	cvtColor(image, hsv, COLOR_BGR2HSV);
+	Mat mask;
+	inRange(hsv, Scalar(90, 30, 30), Scalar(140, 255, 255), mask);
+	GaussianBlur(mask, mask, Size(9, 9), 2);
+
+	vector<Vec3f> circles;
+	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
+
+	vector<Point2f> centers;
+	for (const auto &c : circles)
+	{
+		centers.emplace_back(c[0], c[1]);
+	}
+
+	return centers;
+}
+
 /// @brief Align the image if the image is rotated
 /// @param image Input image
 /// @return return aligned image
 Mat alignBarcodeImage(const Mat &image)
 {
 	// Detect blue color for more accuracy
-	Mat hsv;
-	cvtColor(image, hsv, COLOR_BGR2HSV);
-	Mat mask;
-	// inRange(hsv, Scalar(100, 150, 50), Scalar(140, 255, 255), mask);
-	inRange(hsv, Scalar(90, 30, 30), Scalar(140, 255, 255), mask);
-
-	// Blur to reduce noise and improve circle detection
-	GaussianBlur(mask, mask, Size(9, 9), 2);
-
-	// Find the circle using Hough Circles
-	vector<Vec3f> circles;
-	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
+	vector<Point2f> circles = detectBlueCircles(image);
 	if (circles.size() != 3)
 	{
 		logFile << "[Align Image] [Error]: Found " << circles.size() << " circles, expected 3" << endl;
@@ -304,9 +316,9 @@ Mat alignBarcodeImage(const Mat &image)
 
 	// Extract centers only; c[2] will be radius
 	vector<Point2f> centers;
-	for (const auto &c : circles)
+	for (const Point2f &c : circles)
 	{
-		centers.emplace_back(c[0], c[1]);
+		centers.push_back(c);
 	}
 
 	// Determine right-angle triangle (bottom-left marker should be the right angle)
@@ -451,7 +463,6 @@ int main(int argc, char **argv)
 							putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2);
 							imshow("Live Detection", frame);
 							cout << "Decoded: " << result << endl;
-							int key = waitKey(2000);
 							break;
 						}
 					}
