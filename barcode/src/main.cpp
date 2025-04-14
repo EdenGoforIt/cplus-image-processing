@@ -426,8 +426,8 @@ int main(int argc, char **argv)
 		{
 			VideoCapture cap(0);
 
-			cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-			cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+			cap.set(CAP_PROP_FRAME_WIDTH, 1980);
+			cap.set(CAP_PROP_FRAME_HEIGHT, 1200);
 			if (!cap.isOpened())
 			{
 				cerr << "[main] [Error]: Cannot open the camera" << endl;
