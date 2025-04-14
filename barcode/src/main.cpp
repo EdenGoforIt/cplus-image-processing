@@ -290,7 +290,7 @@ vector<Point2f> detectBlueCircles(const Mat &image)
 	GaussianBlur(mask, mask, Size(9, 9), 2);
 
 	vector<Vec3f> circles;
-	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 20, 40);
+	HoughCircles(mask, circles, HOUGH_GRADIENT, 1, mask.rows / 5, 100, 35, 10, 100);
 
 	vector<Point2f> centers;
 	for (const auto &c : circles)
