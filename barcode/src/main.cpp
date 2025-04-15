@@ -44,8 +44,8 @@ struct Vec3bComparator
 };
 
 /// @brief Get color name
-/// @param color
-/// @return
+/// @param color Color bgr
+/// @return color as string
 string getColorName(const Vec3b &color)
 {
 	if (color == colorMap.black)
@@ -424,10 +424,18 @@ int main(int argc, char **argv)
 		// For dynamic detection through the camera
 		if (string(inputPath) == "camera")
 		{
+			// Note: The dynamic image detection for computing padding is not completely reliable yet.
+			// If the image is significantly scaled, rotated, or distorted (e.g. from printing), the computed centers and padding might be inaccurate.
+			// In the future, one possibility is to determine the padding using the detected horizontal straight line
+			// and apply that measurement to the grid area, so that color detection in the grid centers becomes more precise.
+			// Currently, adjustments have been made to the circle detection by fine-tuning the radius and blue color range
+			// to ensure a reasonable number of circles are detected.
+
 			VideoCapture cap(0);
 
 			cap.set(CAP_PROP_FRAME_WIDTH, 1980);
 			cap.set(CAP_PROP_FRAME_HEIGHT, 1200);
+
 			if (!cap.isOpened())
 			{
 				cerr << "[main] [Error]: Cannot open the camera" << endl;
@@ -462,7 +470,7 @@ int main(int argc, char **argv)
 				catch (...)
 				{
 
-					imshow("Live Detection", frame);
+					imshow("Dynamic Grid Detection", frame);
 					int key = waitKey(10);
 					if (key > 0)
 						break;
