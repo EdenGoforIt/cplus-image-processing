@@ -149,25 +149,23 @@ Rect detectBarcodeArea(const Mat &image)
 	Mat gray, thresh;
 	cvtColor(image, gray, COLOR_BGR2GRAY);
 	threshold(gray, thresh, 220, 255, THRESH_BINARY_INV);
-	// Use morphological operations to close gaps in the barcode
+
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
 	morphologyEx(thresh, thresh, MORPH_CLOSE, kernel);
 	vector<Point> points;
 	findNonZero(thresh, points);
-	// Return empty rectangle if no white pixels are found
+
 	if (points.empty())
 	{
 		return Rect();
 	}
 
-	Rect bbox = boundingRect(points);
-	return bbox;
+	return boundingRect(points);
 }
 
 /// @brief Decode the barcode from the provided image.
 /// @param image Image
 /// @return Decoded string
-/// @note Not removing debug code code as accuracy is more important than performance
 string decodeBarcode(const Mat &image)
 {
 	string decoded;
@@ -248,6 +246,7 @@ string decodeBarcode(const Mat &image)
 		string bits = bitsList[i] + bitsList[i + 1];
 		// Convert the 6 bits to a number
 		int index = bitset<6>(bits).to_ulong();
+
 		// 2^6 = 64. Double check the index
 		if (index < 64)
 		{
@@ -404,7 +403,7 @@ Mat alignBarcodeImage(const Mat &image)
 	return aligned;
 }
 
-/// @brief Use camera instead of image.jpg to use the camera
+/// @brief Use ./src/main camera instead of ./src/main image.jpg to dynamically detect the barcode
 /// @param argc
 /// @param argv
 /// @return
@@ -512,8 +511,10 @@ int main(int argc, char **argv)
 
 				imshow("Dynamic Grid Detection", frame);
 				int key = waitKey(10);
-				if (key == 27)
+				if (key > 0)
+				{
 					break;
+				}
 			}
 		}
 		else
@@ -525,8 +526,6 @@ int main(int argc, char **argv)
 				cerr << "[main] [Error]: Could not open or find the image: " << inputPath << endl;
 				return -1;
 			}
-
-			// Based on the assumption that the image is full size without any white padding or border
 
 			Mat alignedImage = alignBarcodeImage(inputImage);
 			string decoded = decodeBarcode(alignedImage);
