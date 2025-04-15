@@ -473,7 +473,9 @@ int main(int argc, char **argv)
 					imshow("Dynamic Grid Detection", frame);
 					int key = waitKey(10);
 					if (key > 0)
+					{
 						break;
+					}
 
 					continue;
 				}
@@ -486,7 +488,7 @@ int main(int argc, char **argv)
 				{
 					putText(frame, "Alignment failed", Point(50, 100),
 									FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2);
-					imshow("Live Detection", frame);
+					imshow("Dynamic Grid Detection", frame);
 					waitKey(1);
 					continue;
 				}
@@ -498,7 +500,7 @@ int main(int argc, char **argv)
 					{
 						putText(frame, result, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1,
 										Scalar(0, 255, 0), 2);
-						imshow("Live Detection", frame);
+						imshow("Dynamic Grid Detection", frame);
 						cout << "Decoded: " << result << endl;
 						break;
 					}
@@ -508,7 +510,7 @@ int main(int argc, char **argv)
 					cerr << "[Error]: Decoding failed." << endl;
 				}
 
-				imshow("Live Detection", frame);
+				imshow("Dynamic Grid Detection", frame);
 				int key = waitKey(10);
 				if (key == 27)
 					break;
