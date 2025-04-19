@@ -271,7 +271,7 @@ string decodeBarcode(const Mat &image)
 	if (decoded.length() > maxDecodeLength)
 	{
 		logFile << "[Decode] Trimming to 1050 characters" << endl;
-		decoded = decoded.substr(0, 1050);
+		decoded = decoded.substr(0, maxDecodeLength);
 	}
 
 	return decoded;
