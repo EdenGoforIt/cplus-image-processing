@@ -11,6 +11,7 @@ using namespace cv;
 using namespace std;
 
 int gridSize = 47;
+size_t maxDecodeLength = 1050;
 ofstream logFile("log.txt");
 
 // Color map for 8 colors to avoid magic strings
@@ -141,7 +142,7 @@ Vec3b findClosestColor(Vec3b pixel)
 	return closestColor;
 }
 
-/// @brief Detect the area of the barcode in the image. This is necessary as the square is bordered with black with some width
+/// @brief Detect the area of the barcode in the image. This is necessary as the square is bordered with a black border
 /// @param image The input image to detect the barcode area
 /// @return The bounding rectangle of the detected barcode area
 Rect detectBarcodeArea(const Mat &image)
@@ -150,9 +151,12 @@ Rect detectBarcodeArea(const Mat &image)
 	cvtColor(image, gray, COLOR_BGR2GRAY);
 	threshold(gray, thresh, 220, 255, THRESH_BINARY_INV);
 
+	// Find the whole part
 	Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
 	morphologyEx(thresh, thresh, MORPH_CLOSE, kernel);
+
 	vector<Point> points;
+	// Find all white pixels
 	findNonZero(thresh, points);
 
 	if (points.empty())
@@ -202,6 +206,8 @@ string decodeBarcode(const Mat &image)
 			double x1 = offsetX + (col + 1) * squareWidth;
 			double y0 = offsetY + row * squareHeight;
 			double y1 = offsetY + (row + 1) * squareHeight;
+
+			// We are picking up the pixel in the middle of the square box
 			Point center(round((x0 + x1) / 2.0), round((y0 + y1) / 2.0));
 
 			// Debug
@@ -244,10 +250,9 @@ string decodeBarcode(const Mat &image)
 	{
 		// Bit is composed of two colors
 		string bits = bitsList[i] + bitsList[i + 1];
-		// Convert the 6 bits to a number
 		int index = bitset<6>(bits).to_ulong();
 
-		// 2^6 = 64. Double check the index
+		// Double check the index
 		if (index < 64)
 		{
 			decoded += encodingArray[index];
@@ -259,8 +264,16 @@ string decodeBarcode(const Mat &image)
 	logFile << endl;
 	cout << decoded << endl;
 
-	// Debug
+	// Debug to check the if the centers are calculated right
 	imwrite("debug_centers.jpg", debugImg);
+
+	// Ensure exactly 1050 characters
+	if (decoded.length() > maxDecodeLength)
+	{
+		logFile << "[Decode] Trimming to 1050 characters" << endl;
+		decoded = decoded.substr(0, 1050);
+	}
+
 	return decoded;
 }
 
