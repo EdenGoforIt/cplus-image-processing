@@ -340,6 +340,7 @@ Mat alignBarcodeImage(const Mat &image)
 	double distanceBetweenAC = norm(A - C);
 	double distanceBetweenBC = norm(B - C);
 
+	// This is for the dynamic detection of the image through camera
 	if (!isTriangleDistanceBalanced(distanceBetweenAB, distanceBetweenBC, distanceBetweenAC))
 	{
 		cerr << "[Align Image] [Error]: Circle distances too unbalanced to form proper barcode frame." << endl;
@@ -532,6 +533,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
+			// Manual Barcode Detection
 			Mat inputImage = imread(inputPath, IMREAD_COLOR);
 
 			if (inputImage.empty())
