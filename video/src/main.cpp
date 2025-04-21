@@ -24,6 +24,21 @@ int main(int argc, char **argv)
 	try
 	{
 
+		VideoCapture cap;
+
+		if (argc != 2)
+		{
+			cerr << "[main] [Error]: " << argv[0] << " <input video file name> e.g. ./src/main shaky.mp4" << endl;
+			return -1;
+		}
+
+		cap.open(argv[1]);
+		if (!cap.isOpened())
+		{
+			cerr << "[main] [Error]: Could not open the video file: " << argv[1] << endl;
+			return -1;
+		}
+
 		cout << "[main] [Debug] Successfully processed the barcode" << endl;
 
 		// Debug
