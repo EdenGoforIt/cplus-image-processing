@@ -12,6 +12,30 @@ using namespace std;
 
 ofstream logFile("log.txt");
 
+vector<double> applyGaussianWeightAverage(int windowSize, double sigma)
+{
+	vector<double> weights(windowSize);
+	double sum = 0.0;
+
+	// Ensure the window is centered
+	int center = windowSize / 2;
+
+	for (int i = 0; i < windowSize; ++i)
+	{
+		int distance = i - center;
+		weights[i] = exp(-(distance * distance) / (2.0 * sigma * sigma));
+		sum += weights[i];
+	}
+
+	// Normalize so the total sum of weights is 1.0
+	for (double &w : weights)
+	{
+		w /= sum;
+	}
+
+	return weights;
+}
+
 int main(int argc, char **argv)
 {
 	// Validation; Argument should have two parameters.
@@ -39,7 +63,24 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		cout << "[main] [Debug] Successfully processed the barcode" << endl;
+		const int windowSize = 19;
+		const double sigma = 5.0; // Fixed typo in variable name
+
+		deque<Mat> frameBuffer;
+		deque<Mat> matrixBuffer;
+
+		vector<double> gaussianWeight = applyGaussianWeightAverage(windowSize, sigma); // Fixed vector typea);
+
+		logFile << "[main] [Debug]: Gaussian weights: ";
+		for (const auto &weight : gaussianWeight)
+		{
+			logFile << weight << " ";
+		}
+		logFile << endl;
+
+
+		
+		cout << "[main] [Debug] Successfully processed" << endl;
 
 		// Debug
 		logFile.close();
