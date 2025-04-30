@@ -78,8 +78,40 @@ int main(int argc, char **argv)
 		}
 		logFile << endl;
 
+		Mat frame, stableFrame;
+		namedWindow("Original Video", WINDOW_NORMAL);
+		namedWindow("Stable Video", WINDOW_NORMAL);
 
-		
+		while (true)
+		{
+			// Read the next frame from the video file
+			cap >> frame;
+			if (frame.empty())
+			{
+				break;
+			}
+
+			frameBuffer.push_back(frame.clone());
+
+			// Keep buffer at specified window size
+			if (frameBuffer.size() > windowSize)
+			{
+				frameBuffer.pop_front();
+			}
+
+			// Display the original frame
+			imshow("Original Video", frame);
+
+			// Only show the stable frame if we have a valid frame
+			stableFrame = frame.clone(); // For now, just use original frame
+			imshow("Stable Video", stableFrame);
+
+			if (waitKey(30) >= 0) // Wait for 30ms or until a key is pressed
+			{
+				break;
+			}
+		}
+
 		cout << "[main] [Debug] Successfully processed" << endl;
 
 		// Debug
