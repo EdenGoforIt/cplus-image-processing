@@ -81,7 +81,7 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 			goodMatches.push_back(m[0]);
 		}
 	}
-
+	// If not enough good matches, return just the default homography
 	if (goodMatches.size() < 8)
 	{
 		logFile << "Not enough good matches: " << goodMatches.size() << endl;
@@ -114,9 +114,6 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 		return defaultH;
 	}
 
-	// If all successful, return the homography matrix
-	logFile << "Homography found with determinant: " << det << endl;
-	cout << "Homography found with determinant: " << det << endl;
 	return H;
 }
 
@@ -142,6 +139,43 @@ Mat smoothHomographies(const deque<Mat> &matrixBuffer, const vector<double> &wei
 	return smoothed;
 }
 
+// We are picking up the middle frame as it's the best balanced frame
+Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
+												 const deque<Mat> &matrixBuffer,
+												 const vector<double> &weights,
+												 int borderSize, int padding)
+{
+	int centerIndex = frameBuffer.size() / 2;
+	Mat centerFrame = frameBuffer[centerIndex];
+	Mat centerH = matrixBuffer[centerIndex];
+
+	Mat smoothedH = smoothHomographies(matrixBuffer, weights);
+	Mat correctionH = smoothedH * centerH.inv();
+
+	// Add border and padding
+	Mat borderedFrame;
+	copyMakeBorder(centerFrame, borderedFrame, borderSize, borderSize, borderSize, borderSize,
+								 BORDER_CONSTANT, Scalar(0, 255, 0));
+
+	Mat paddedFrame;
+	copyMakeBorder(borderedFrame, paddedFrame, padding, padding, padding, padding,
+								 BORDER_CONSTANT, Scalar(0, 255, 0));
+
+	Mat adjustedH = correctionH.clone();
+	Mat stabilizedPadded;
+	warpPerspective(paddedFrame, stabilizedPadded, adjustedH, paddedFrame.size());
+
+	// Crop to restore original+border size
+	int cropX = (paddedFrame.cols - (centerFrame.cols + 2 * borderSize)) / 2;
+	int cropY = (paddedFrame.rows - (centerFrame.rows + 2 * borderSize)) / 2;
+
+	Rect cropRect(cropX, cropY,
+								centerFrame.cols + 2 * borderSize,
+								centerFrame.rows + 2 * borderSize);
+
+	return stabilizedPadded(cropRect).clone();
+}
+
 int main(int argc, char **argv)
 {
 	// Open video source
@@ -157,11 +191,18 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	int totalFrames = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT));
+	logFile << "Total frames in the video: " << totalFrames << endl;
+	cout << "Total frames in the video: " << totalFrames << endl;
+
+	// 19 frames are used to calculate the homography
 	const int windowSize = 19;
 	const double sigma = 5.0;
 
-	int padding = 100;	 // Smaller padding to make borders more visible
-	int borderSize = 10; // Green border size
+	// Smaller padding to make borders more visible
+	int padding = 100;
+	// Green border size
+	int borderSize = 10;
 
 	// Calculate Gaussian weights for smoothing
 	vector<double> weights = applyGaussianWeightAverage(windowSize, sigma);
@@ -197,56 +238,21 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				// New homography from the current frame all the way to the first frame
+				// Cumulative homography; new homography from the current frame all the way to the first frame
 				matrixBuffer.push_back(H * matrixBuffer.back());
 			}
 		}
 		else
 		{
+			// if not enough frames, just push the not transformed homography
 			matrixBuffer.push_back(Mat::eye(3, 3, CV_64F));
 		}
 
 		// Process if the frame buffer has enough frames. Currently 19 frames are used as window size
 		if (frameBuffer.size() >= windowSize)
 		{
-			// Pick the middle frame from the buffer; that's the most stable frame
-			int centerIndex = windowSize / 2;
-			Mat centerFrame = frameBuffer[centerIndex];
-			Mat centerH = matrixBuffer[centerIndex];
-
-			// Calculate smoothed homography
-			Mat smoothedH = smoothHomographies(matrixBuffer, weights);
-
-			// Calculate the corrected homography
-			Mat correctionH = smoothedH * centerH.inv();
-
-			// Apply green border around the center frame
-			Mat borderedFrame;
-			copyMakeBorder(centerFrame, borderedFrame, borderSize, borderSize, borderSize, borderSize,
-										 BORDER_CONSTANT, Scalar(0, 255, 0));
-
-			// Add some padding to the frame to avoid cropping
-			Mat paddedFrame;
-			copyMakeBorder(borderedFrame, paddedFrame, padding, padding, padding, padding,
-										 BORDER_CONSTANT, Scalar(0, 255, 0));
-
-			// Adjust homography to account for padding
-			Mat adjustedH = correctionH.clone();
-
-			// Apply the homography
-			Mat stabilizedPadded;
-			warpPerspective(paddedFrame, stabilizedPadded, adjustedH, paddedFrame.size());
-
-			// Need to crop the padded frame as warpPerspective adds white padding arouhd the frame
-			int cropX = (paddedFrame.cols - (centerFrame.cols + 2 * borderSize)) / 2;
-			int cropY = (paddedFrame.rows - (centerFrame.rows + 2 * borderSize)) / 2;
-
-			Rect cropRect(cropX, cropY,
-										centerFrame.cols + 2 * borderSize,
-										centerFrame.rows + 2 * borderSize);
-
-			// This is the final stablized frame
-			Mat stabilized = stabilizedPadded(cropRect).clone();
+			Mat centerFrame = frameBuffer[windowSize / 2];
+			Mat stabilized = stabilizeMiddleFrame(frameBuffer, matrixBuffer, weights, borderSize, padding);
 
 			// Display original and stabilized frames
 			imshow("Original", centerFrame);
