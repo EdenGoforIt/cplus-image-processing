@@ -178,100 +178,120 @@ Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
 
 int main(int argc, char **argv)
 {
-	// Open video source
-	VideoCapture cap;
-	if (argc == 2)
-		cap.open(argv[1]);
-	else
-		cap.open(0);
-
-	if (!cap.isOpened())
+	try
 	{
-		cerr << "Error: Cannot open video source" << endl;
-		return -1;
-	}
-
-	int totalFrames = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT));
-	logFile << "Total frames in the video: " << totalFrames << endl;
-	cout << "Total frames in the video: " << totalFrames << endl;
-
-	// 19 frames are used to calculate the homography
-	const int windowSize = 19;
-	const double sigma = 5.0;
-
-	// Smaller padding to make borders more visible
-	int padding = 100;
-	// Green border size
-	int borderSize = 10;
-
-	// Calculate Gaussian weights for smoothing
-	vector<double> weights = applyGaussianWeightAverage(windowSize, sigma);
-	deque<Mat> frameBuffer;
-	deque<Mat> matrixBuffer;
-
-	namedWindow("Original", WINDOW_NORMAL);
-	namedWindow("Stabilized", WINDOW_NORMAL);
-
-	logFile << "Starting video stabilization..." << endl;
-
-	while (true)
-	{
-		Mat frame;
-		cap >> frame;
-		if (frame.empty())
-			break;
-
-		frameBuffer.push_back(frame.clone());
-
-		// It only applies when there are at least 2 frames in the buffer
-		if (frameBuffer.size() > 1)
+		if (argc != 2)
 		{
-			// Calculate homography between previous and current frames
-			Mat H = findHomographyBetweenFrames(
-					frameBuffer[frameBuffer.size() - 2],
-					frameBuffer[frameBuffer.size() - 1]);
+			logFile << "Usage: ./src/main <video_file>" << endl;
+			throw std::runtime_error("Usage: ./src/main <video_file>");
+		}
 
-			// Save the first homography as the initial cumulative homography
-			if (matrixBuffer.empty())
+		// Open video source
+		VideoCapture cap;
+
+		if (!cap.isOpened())
+		{
+			cerr << "Error: Cannot open video source" << endl;
+			return -1;
+		}
+
+		// 19 frames are used to calculate the homography
+		const int windowSize = 19;
+		const double sigma = 5.0;
+
+		// Smaller padding to make borders more visible
+		int padding = 100;
+		// Green border size
+		int borderSize = 10;
+
+		int totalFrames = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT));
+		logFile << "Total frames in the video: " << totalFrames << endl;
+		cout << "Total frames in the video: " << totalFrames << endl;
+
+		if (totalFrames > 0 && totalFrames < windowSize)
+		{
+			cerr << "Error: Video is too short. Needs at least " << windowSize << " frames." << endl;
+			return -1;
+		}
+
+		// Calculate Gaussian weights for smoothing
+		vector<double> weights = applyGaussianWeightAverage(windowSize, sigma);
+		deque<Mat> frameBuffer;
+		deque<Mat> matrixBuffer;
+
+		namedWindow("Original", WINDOW_NORMAL);
+		namedWindow("Smoothed", WINDOW_NORMAL);
+
+		logFile << "Starting video stabilization..." << endl;
+
+		while (true)
+		{
+			Mat frame;
+			cap >> frame;
+			if (frame.empty())
+				break;
+
+			frameBuffer.push_back(frame.clone());
+
+			// It only applies when there are at least 2 frames in the buffer
+			if (frameBuffer.size() > 1)
 			{
-				matrixBuffer.push_back(H.clone());
+				// Calculate homography between previous and current frames
+				Mat H = findHomographyBetweenFrames(
+						frameBuffer[frameBuffer.size() - 2],
+						frameBuffer[frameBuffer.size() - 1]);
+
+				// Save the first homography as the initial cumulative homography
+				if (matrixBuffer.empty())
+				{
+					matrixBuffer.push_back(H.clone());
+				}
+				else
+				{
+					// Cumulative homography; new homography from the current frame all the way to the first frame
+					matrixBuffer.push_back(H * matrixBuffer.back());
+				}
 			}
 			else
 			{
-				// Cumulative homography; new homography from the current frame all the way to the first frame
-				matrixBuffer.push_back(H * matrixBuffer.back());
+				// if not enough frames, just push the not transformed homography
+				matrixBuffer.push_back(Mat::eye(3, 3, CV_64F));
+			}
+
+			// Process if the frame buffer has enough frames. Currently 19 frames are used as window size
+			if (frameBuffer.size() >= windowSize)
+			{
+				Mat centerFrame = frameBuffer[windowSize / 2];
+				Mat stabilized = stabilizeMiddleFrame(frameBuffer, matrixBuffer, weights, borderSize, padding);
+
+				// Display original and stabilized frames
+				imshow("Original", centerFrame);
+				imshow("Smoothed", stabilized);
+
+				// Remove oldest frame and matrix
+				frameBuffer.pop_front();
+				matrixBuffer.pop_front();
+			}
+
+			// Exit in any key press
+			if (waitKey(30) > 0)
+			{
+				break;
 			}
 		}
-		else
-		{
-			// if not enough frames, just push the not transformed homography
-			matrixBuffer.push_back(Mat::eye(3, 3, CV_64F));
-		}
 
-		// Process if the frame buffer has enough frames. Currently 19 frames are used as window size
-		if (frameBuffer.size() >= windowSize)
-		{
-			Mat centerFrame = frameBuffer[windowSize / 2];
-			Mat stabilized = stabilizeMiddleFrame(frameBuffer, matrixBuffer, weights, borderSize, padding);
-
-			// Display original and stabilized frames
-			imshow("Original", centerFrame);
-			imshow("Stabilized", stabilized);
-
-			// Remove oldest frame and matrix
-			frameBuffer.pop_front();
-			matrixBuffer.pop_front();
-		}
-
-		// Exit in any key press
-		if (waitKey(30) > 0)
-		{
-			break;
-		}
+		cap.release();
+		destroyAllWindows();
+		logFile << "Video stabilization completed." << endl;
+		logFile.close();
+	}
+	catch (const std::exception &e)
+	{
+		logFile << "Exception: " << e.what() << endl;
+		cerr << "Exception: " << e.what() << endl;
+		logFile.close();
+		return -1;
 	}
 
-	cap.release();
-	destroyAllWindows();
-	logFile.close();
 	return 0;
 }
