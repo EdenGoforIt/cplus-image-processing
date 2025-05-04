@@ -8,6 +8,10 @@ using namespace std;
 
 ofstream logFile("log.txt");
 
+// Texture Analysis
+// 		IMPLEMENT AND TRAIN A SIMPLE APPROACH TO CLASSIFY TEXTURE WITHIN IMAGES.USING THE SIMPLE CLASSIFIER,
+// 		SEGMENT GRASS, CLOUDS AND SEA FROM IMAGES.
+
 int main(int argc, char **argv)
 {
 	try
