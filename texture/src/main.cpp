@@ -120,11 +120,11 @@ int main(int argc, char **argv)
 
 				Scalar color;
 				if (response == 0)
-					color = Scalar(0, 255, 0); // Grass
+					color = Scalar(0, 255, 0); // Grass as green
 				else if (response == 1)
-					color = Scalar(200, 200, 200); // Clouds
+					color = Scalar(200, 200, 200); // Clouds as grey
 				else
-					color = Scalar(255, 0, 0); // Sea
+					color = Scalar(255, 0, 0); // Sea as blue
 
 				rectangle(result, Rect(x, y, patchSize, patchSize), color, FILLED);
 			}
