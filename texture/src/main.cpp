@@ -12,15 +12,18 @@ ofstream logFile("log.txt");
 // 		IMPLEMENT AND TRAIN A SIMPLE APPROACH TO CLASSIFY TEXTURE WITHIN IMAGES.USING THE SIMPLE CLASSIFIER,
 // 		SEGMENT GRASS, CLOUDS AND SEA FROM IMAGES.
 
+void loadTrainingImages(const string &path, int label, Mat &features, Mat &labels)
+{
+	
+
+}
+
 int main(int argc, char **argv)
 {
 	try
 	{
-		if (argc != 2)
-		{
-			logFile << "Usage: ./src/main <video_file>" << endl;
-			throw std::runtime_error("Usage: ./src/main <video_file>");
-		}
+		Mat features, labels;
+
 		cout << "Opening video file: " << argv[1] << endl;
 		logFile << "Video stabilization completed." << endl;
 		logFile.close();

@@ -10,7 +10,9 @@
     "fstream": "cpp",
     "stdexcept": "cpp",
     "locale": "cpp",
-    "bitset": "cpp"
+    "bitset": "cpp",
+    "complex": "cpp",
+    "deque": "cpp"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "clang",
@@ -51,7 +53,10 @@
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [],
-  "C_Cpp_Runner.includeSearch": ["*", "**/*"],
+  "C_Cpp_Runner.includeSearch": [
+    "*",
+    "**/*"
+  ],
   "C_Cpp_Runner.excludeSearch": [
     "**/build",
     "**/build/**",
