@@ -11,6 +11,10 @@ using namespace std;
 
 ofstream logFile("log.txt");
 
+const int grassLabel = 0;
+const int cloudLabel = 1;
+const int seaLabel = 2;
+
 // Texture Analysis
 // 		IMPLEMENT AND TRAIN A SIMPLE APPROACH TO CLASSIFY TEXTURE WITHIN IMAGES.USING THE SIMPLE CLASSIFIER,
 // 		SEGMENT GRASS, CLOUDS AND SEA FROM IMAGES.
@@ -79,9 +83,9 @@ int main(int argc, char **argv)
 		Mat features, labels;
 
 		// Prepare training data
-		loadTrainingData("../data/grass", 0, features, labels);
-		loadTrainingData("../data/cloud", 1, features, labels);
-		loadTrainingData("../data/sea", 2, features, labels);
+		loadTrainingData("../data/grass", grassLabel, features, labels);
+		loadTrainingData("../data/cloud", cloudLabel, features, labels);
+		loadTrainingData("../data/sea", seaLabel, features, labels);
 
 		logFile << "Training data loaded successfully." << endl;
 		cout << "Training data loaded successfully." << endl;
