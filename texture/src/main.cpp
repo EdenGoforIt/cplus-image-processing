@@ -123,9 +123,9 @@ int main(int argc, char **argv)
 				float response = knn->predict(hist);
 
 				Scalar color;
-				if (response == 0)
+				if (response == grassLabel)
 					color = Scalar(0, 255, 0); // Grass as green
-				else if (response == 1)
+				else if (response == cloudLabel)
 					color = Scalar(200, 200, 200); // Clouds as grey
 				else
 					color = Scalar(255, 0, 0); // Sea as blue
