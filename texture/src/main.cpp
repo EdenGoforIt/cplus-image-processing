@@ -24,14 +24,27 @@ uchar calculateLBP(const Mat &img, int x, int y)
 {
 	uchar center = img.at<uchar>(y, x);
 	uchar code = 0;
-	code |= (img.at<uchar>(y - 1, x - 1) > center) << 7;
-	code |= (img.at<uchar>(y - 1, x) > center) << 6;
-	code |= (img.at<uchar>(y - 1, x + 1) > center) << 5;
-	code |= (img.at<uchar>(y, x + 1) > center) << 4;
-	code |= (img.at<uchar>(y + 1, x + 1) > center) << 3;
-	code |= (img.at<uchar>(y + 1, x) > center) << 2;
-	code |= (img.at<uchar>(y + 1, x - 1) > center) << 1;
-	code |= (img.at<uchar>(y, x - 1) > center) << 0;
+
+	// Neighbors positions (clockwise starting from top-left)
+	uchar topLeft = img.at<uchar>(y - 1, x - 1);
+	uchar top = img.at<uchar>(y - 1, x);
+	uchar topRight = img.at<uchar>(y - 1, x + 1);
+	uchar right = img.at<uchar>(y, x + 1);
+	uchar bottomRight = img.at<uchar>(y + 1, x + 1);
+	uchar bottom = img.at<uchar>(y + 1, x);
+	uchar bottomLeft = img.at<uchar>(y + 1, x - 1);
+	uchar left = img.at<uchar>(y, x - 1);
+
+	// Build the LBP code by comparing neighbors with the center
+	code |= (topLeft > center) << 7;
+	code |= (top > center) << 6;
+	code |= (topRight > center) << 5;
+	code |= (right > center) << 4;
+	code |= (bottomRight > center) << 3;
+	code |= (bottom > center) << 2;
+	code |= (bottomLeft > center) << 1;
+	code |= (left > center) << 0;
+
 	return code;
 }
 
