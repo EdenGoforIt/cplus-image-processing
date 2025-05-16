@@ -52,6 +52,7 @@ uchar calculateLBP(const Mat &img, int x, int y)
 Mat computeLBPHistogram(const Mat &patch)
 {
 	Mat hist = Mat::zeros(1, 256, CV_32F);
+	// Iterate over the patch and compute LBP values
 	for (int y = 1; y < patch.rows - 1; ++y)
 	{
 		for (int x = 1; x < patch.cols - 1; ++x)
@@ -60,6 +61,8 @@ Mat computeLBPHistogram(const Mat &patch)
 			hist.at<float>(0, lbp)++;
 		}
 	}
+
+	// Normalize the histogram so that the sum of all bins equals 1
 	normalize(hist, hist, 1.0, 0.0, NORM_L1);
 	return hist;
 }
