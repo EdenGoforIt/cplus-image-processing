@@ -14,6 +14,7 @@ ofstream logFile("log.txt");
 const int grassLabel = 0;
 const int cloudLabel = 1;
 const int seaLabel = 2;
+const int K = 3; // kNN parameter
 
 // Texture Analysis
 // 		IMPLEMENT AND TRAIN A SIMPLE APPROACH TO CLASSIFY TEXTURE WITHIN IMAGES.USING THE SIMPLE CLASSIFIER,
@@ -58,6 +59,8 @@ Mat computeLBPHistogram(const Mat &patch)
 		for (int x = 1; x < patch.cols - 1; ++x)
 		{
 			uchar lbp = calculateLBP(patch, x, y);
+			// Leave the row as 0, we are only incrementing the column histogram.
+			// E.g. if 216 is the LBP value, increment the 216th column of the histgram. hist[216] +=1.
 			hist.at<float>(0, lbp)++;
 		}
 	}
@@ -67,10 +70,13 @@ Mat computeLBPHistogram(const Mat &patch)
 	return hist;
 }
 
+// Loads training images from a specified folder, extracts LBP histogram features, and stores them with corresponding labels.
 void loadTrainingData(const string &folder, int label, Mat &features, Mat &labels)
 {
+	// In each folder, loop the file
 	for (const auto &entry : std::filesystem::directory_iterator(folder))
 	{
+		// Grayscale image should be used for as LBP doens't care about the colour but texture
 		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
 		if (img.empty())
 		{
@@ -108,6 +114,7 @@ int main(int argc, char **argv)
 
 		// Train Classifier
 		Ptr<KNearest> knn = KNearest::create();
+		knn->setDefaultK(K);
 		knn->train(features, ROW_SAMPLE, labels);
 
 		logFile << "Classifier trained successfully." << endl;
@@ -136,12 +143,33 @@ int main(int argc, char **argv)
 			{
 				Mat patch = testImg(Rect(x, y, patchSize, patchSize));
 				Mat hist = computeLBPHistogram(patch);
-				float response = knn->predict(hist);
+
+				// Distance-weighted kNN
+				Mat neighborResponses, neighborDistances;
+				Mat results; // Create a Mat to store the results
+				knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
+
+				float weightedVotes[3] = {0};
+				for (int i = 0; i < K; ++i)
+				{
+					float response = neighborResponses.at<float>(0, i);
+					float distance = neighborDistances.at<float>(0, i);
+					float weight = (distance == 0) ? FLT_MAX : 1.0f / distance;
+
+					if (response == grassLabel)
+						weightedVotes[0] += weight;
+					else if (response == cloudLabel)
+						weightedVotes[1] += weight;
+					else if (response == seaLabel)
+						weightedVotes[2] += weight;
+				}
+
+				int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 
 				Scalar color;
-				if (response == grassLabel)
+				if (finalClass == grassLabel)
 					color = Scalar(0, 255, 0); // Grass as green
-				else if (response == cloudLabel)
+				else if (finalClass == cloudLabel)
 					color = Scalar(200, 200, 200); // Clouds as grey
 				else
 					color = Scalar(255, 0, 0); // Sea as blue
