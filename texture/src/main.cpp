@@ -35,7 +35,8 @@ uchar calculateLBP(const Mat &img, int x, int y)
 	uchar bottomLeft = img.at<uchar>(y + 1, x - 1);
 	uchar left = img.at<uchar>(y, x - 1);
 
-	// Build the LBP code by comparing neighbors with the center
+	// Build a binary code based on the neighbors' intensity compared to the center pixel
+	// Then convert into decimal value in the end
 	code |= (topLeft > center) << 7;
 	code |= (top > center) << 6;
 	code |= (topRight > center) << 5;
@@ -66,8 +67,10 @@ Mat computeLBPHistogram(const Mat &patch)
 
 void loadTrainingData(const string &folder, int label, Mat &features, Mat &labels)
 {
+	// Loop through the images in the folder
 	for (const auto &entry : std::filesystem::directory_iterator(folder))
 	{
+		// Make the image grayscale
 		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
 		if (img.empty())
 		{
@@ -79,6 +82,10 @@ void loadTrainingData(const string &folder, int label, Mat &features, Mat &label
 		resize(img, feature, Size(64, 64)); // Resize to a fixed size
 		Mat hist = computeLBPHistogram(img);
 		features.push_back(hist);
+
+		// const int grassLabel = 0;
+		// const int cloudLabel = 1;
+		// const int seaLabel = 2;
 		labels.push_back(label);
 	}
 }
@@ -95,7 +102,7 @@ int main(int argc, char **argv)
 
 		Mat features, labels;
 
-		// Prepare training data
+		// 1. Training phase
 		loadTrainingData("../data/grass", grassLabel, features, labels);
 		loadTrainingData("../data/cloud", cloudLabel, features, labels);
 		loadTrainingData("../data/sea", seaLabel, features, labels);
@@ -113,6 +120,7 @@ int main(int argc, char **argv)
 		// Load test image using command line argument
 		string fullInputPath = "../data/" + string(argv[1]);
 		Mat testImg = imread(fullInputPath, IMREAD_GRAYSCALE);
+		Mat originalImage = imread(fullInputPath, IMREAD_COLOR);
 
 		if (testImg.empty())
 		{
@@ -126,6 +134,7 @@ int main(int argc, char **argv)
 		// Compute LBP histogram for the test image
 		Mat result = Mat::zeros(testImg.size(), CV_8UC3);
 		int patchSize = 32;
+		const int K = 3; // kNN parameter
 
 		for (int y = 0; y < testImg.rows - patchSize; y += patchSize)
 		{
@@ -133,12 +142,32 @@ int main(int argc, char **argv)
 			{
 				Mat patch = testImg(Rect(x, y, patchSize, patchSize));
 				Mat hist = computeLBPHistogram(patch);
-				float response = knn->predict(hist);
 
+				Mat neighborResponses, neighborDistances;
+				Mat results;
+				knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
+
+				// Distance-weighted voting
+				float weightedVotes[3] = {0};
+				for (int i = 0; i < K; ++i)
+				{
+					float response = neighborResponses.at<float>(0, i);
+					float distance = neighborDistances.at<float>(0, i);
+					float weight = (distance == 0) ? FLT_MAX : 1.0f / distance;
+
+					if (response == grassLabel)
+						weightedVotes[0] += weight;
+					else if (response == cloudLabel)
+						weightedVotes[1] += weight;
+					else if (response == seaLabel)
+						weightedVotes[2] += weight;
+				}
+
+				int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 				Scalar color;
-				if (response == grassLabel)
+				if (finalClass == grassLabel)
 					color = Scalar(0, 255, 0); // Grass as green
-				else if (response == cloudLabel)
+				else if (finalClass == cloudLabel)
 					color = Scalar(200, 200, 200); // Clouds as grey
 				else
 					color = Scalar(255, 0, 0); // Sea as blue
@@ -149,7 +178,7 @@ int main(int argc, char **argv)
 
 		// Display & save the result
 		imshow("Segmented Texture", result);
-		imshow("Original Image", testImg);
+		imshow("Original Image", originalImage);
 		waitKey(0);
 
 		logFile << "Segmentation completed successfully." << endl;
