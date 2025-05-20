@@ -51,33 +51,77 @@ Mat computeLBPHistogram(const Mat &patch)
 
 void printConfusionMatrix()
 {
-	cout << "\n+-----------+-------+-------+-------+\n";
-	cout << "| Predicted | Grass | Cloud | Sea   |\n";
-	cout << "+-----------+-------+-------+-------+\n";
-	string classes[3] = {"Grass    ", "Cloud    ", "Sea      "};
-	for (int i = 0; i < 3; ++i)
+	// Calculate total files and correct predictions for each class
+	int totalByClass[3] = {0, 0, 0};
+	int correctByClass[3] = {0, 0, 0};
+
+	for (int i = 0; i < 3; i++)
 	{
-		cout << "| " << classes[i] << "|";
-		for (int j = 0; j < 3; ++j)
+		for (int j = 0; j < 3; j++)
 		{
-			cout << "   " << confusionMatrix[i][j] << "  |";
+			totalByClass[i] += confusionMatrix[i][j];
+			if (i == j)
+			{
+				correctByClass[i] = confusionMatrix[i][j];
+			}
 		}
-		cout << endl;
 	}
-	cout << "+-----------+-------+-------+-------+\n"
-			 << endl;
+
+	// Print header
+	cout << "\n=== CLASSIFICATION REPORT ===\n\n";
+
+	// Print accuracy per class
+	string classNames[3] = {"Grass", "Cloud", "Sea"};
+	cout << "Class Accuracy:\n";
+	for (int i = 0; i < 3; i++)
+	{
+		float accuracy = (totalByClass[i] > 0) ? (float)correctByClass[i] / totalByClass[i] * 100 : 0;
+		cout << classNames[i] << ": " << correctByClass[i] << "/" << totalByClass[i]
+				 << " files correctly classified (" << fixed << setprecision(2) << accuracy << "%)\n";
+	}
+
+	// Print overall accuracy
+	int totalCorrect = correctByClass[0] + correctByClass[1] + correctByClass[2];
+	int totalFiles = totalByClass[0] + totalByClass[1] + totalByClass[2];
+	float overallAccuracy = (totalFiles > 0) ? (float)totalCorrect / totalFiles * 100 : 0;
+
+	cout << "\nOverall accuracy: " << totalCorrect << "/" << totalFiles
+			 << " (" << fixed << setprecision(2) << overallAccuracy << "%)\n";
 }
 
 void testPatches(const string &testFolder, int trueLabel, Ptr<KNearest> &knn)
 {
+	cout << "==========================\n";
+
+	cout << "Testing images in " << testFolder << "..." << endl;
+	int count = 0;
+
 	for (const auto &entry : fs::directory_iterator(testFolder))
 	{
 		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
 		if (img.empty())
+		{
+			cout << "Warning: Could not read " << entry.path().string() << endl;
 			continue;
+		}
+
+		// Make sure test images are processed the same way as training images
+		resize(img, img, Size(32, 32)); // Same size as test data
+
+		// Show image dimensions for debugging
+		cout << "Testing: " << entry.path().filename() << " size: " << img.size() << endl;
 
 		Mat hist = computeLBPHistogram(img);
-		Mat neighborResponses, neighborDistances, results;
+		Mat results;
+
+		// For debugging purposes, show the classification result for each file
+		float response = knn->predict(hist);
+		string predictedClass = (response == 0) ? "Grass" : (response == 1) ? "Cloud"
+																																				: "Sea";
+		cout << "File: " << entry.path().filename() << " - Predicted: " << predictedClass << endl;
+
+		// Now do the weighted KNN classification
+		Mat neighborResponses, neighborDistances;
 		knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
 
 		float weightedVotes[3] = {0};
@@ -97,14 +141,67 @@ void testPatches(const string &testFolder, int trueLabel, Ptr<KNearest> &knn)
 
 		int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 		confusionMatrix[trueLabel][finalClass]++;
+		count++;
 	}
+	cout << "Processed " << count << " files from " << testFolder << endl;
+	cout << "==========================\n";
+}
+
+void loadTrainingData(const string &folder, int label, Mat &features, Mat &labels)
+{
+	int count = 0;
+	cout << "Loading data from: " << folder << endl;
+
+	for (const auto &entry : fs::directory_iterator(folder))
+	{
+		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
+		if (img.empty())
+		{
+			cout << "Warning: Could not read " << entry.path().string() << endl;
+			continue;
+		}
+
+		// Use 32x32 pixels to match test data
+		resize(img, img, Size(32, 32));
+
+		// Debug: Show some image info
+		cout << "Loaded: " << entry.path().filename() << " size: " << img.size() << endl;
+
+		Mat hist = computeLBPHistogram(img);
+		features.push_back(hist);
+		labels.push_back(label);
+		count++;
+	}
+
+	cout << "Loaded " << count << " images for class " << label << endl;
 }
 
 int main()
 {
-	// Load pre-trained model directly (retraining not shown in this script)
+	// First, train the KNN model with training data
+	Mat features, labels;
+
+	cout << "Loading training data..." << endl;
+
+	// Load training data
+	loadTrainingData("../data/grass", grassLabel, features, labels);
+	loadTrainingData("../data/cloud", cloudLabel, features, labels);
+	loadTrainingData("../data/sea", seaLabel, features, labels);
+
+	if (features.empty() || labels.empty())
+	{
+		cerr << "Error: No training data loaded" << endl;
+		return -1;
+	}
+
+	cout << "Training KNN classifier with " << features.rows << " samples..." << endl;
+
+	// Create and train the KNN model
 	Ptr<KNearest> knn = KNearest::create();
-	// Assume you’ve already trained and loaded data into 'knn' somewhere before calling this test.
+	knn->setDefaultK(K);
+	knn->train(features, ROW_SAMPLE, labels);
+
+	cout << "KNN training complete. Running tests..." << endl;
 
 	// Test on each directory
 	testPatches("../test/grass", grassLabel, knn);
@@ -112,6 +209,41 @@ int main()
 	testPatches("../test/sea", seaLabel, knn);
 
 	printConfusionMatrix();
+
+	// Display number of training samples per class
+	int grassCount = 0, cloudCount = 0, seaCount = 0;
+	for (int i = 0; i < labels.rows; i++)
+	{
+		if (labels.at<float>(i) == grassLabel)
+			grassCount++;
+		else if (labels.at<float>(i) == cloudLabel)
+			cloudCount++;
+		else if (labels.at<float>(i) == seaLabel)
+			seaCount++;
+	}
+
+	cout << "Training data distribution:" << endl;
+	cout << "- Grass: " << grassCount << " samples" << endl;
+	cout << "- Cloud: " << cloudCount << " samples" << endl;
+	cout << "- Sea: " << seaCount << " samples" << endl;
+
+	// Try different K values if needed
+	// knn->setDefaultK(K);
+
+	// Display feature vector information for debugging
+	cout << "Feature matrix size: " << features.rows << " samples x " << features.cols << " features" << endl;
+
+	// Add more training information
+	if (features.rows < 10)
+	{
+		cout << "WARNING: Very small training set. Results may be unreliable." << endl;
+	}
+
+	// Debug: Show some sample data
+	if (!features.empty())
+	{
+		cout << "First feature vector sum: " << sum(features.row(0))[0] << endl;
+	}
 
 	return 0;
 }
