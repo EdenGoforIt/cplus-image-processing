@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
 		// Compute LBP histogram for the test image
 		Mat result = Mat::zeros(testImg.size(), CV_8UC3);
-		int patchSize = 32;
+		int patchSize = 64;
 		const int K = 3; // kNN parameter
 
 		for (int y = 0; y < testImg.rows - patchSize; y += patchSize)
@@ -165,6 +165,7 @@ int main(int argc, char **argv)
 
 				int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 				Scalar color;
+				// 0 for grass, 1 for cloud, and 2 for sea
 				if (finalClass == grassLabel)
 					color = Scalar(0, 255, 0); // Grass as green
 				else if (finalClass == cloudLabel)
