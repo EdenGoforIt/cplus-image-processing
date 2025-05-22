@@ -190,10 +190,11 @@ int main(int argc, char **argv)
 
 		// Open video source
 		VideoCapture cap;
-
+		cap.open(argv[1]);
 		if (!cap.isOpened())
 		{
-			cerr << "Error: Cannot open video source" << endl;
+			cerr << "[main] [Error]: Could not open the video file: " << argv[1] << endl;
+			cerr << "[main] [Debug]: Make sure file exists and OpenCV has required codecs" << endl;
 			return -1;
 		}
 
