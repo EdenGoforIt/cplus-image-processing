@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 		if (argc != 2)
 		{
 			logFile << "Usage: ./src/main <video_file>" << endl;
-			throw std::runtime_error("Usage: ./src/main <video_file>");
+			throw runtime_error("Usage: ./src/main <video_file>");
 		}
 
 		// Open video source
@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		// 19 frames are used to calculate the homography
+		// 19 frames (to start with as the requirement) are used to calculate the homography
 		const int windowSize = 19;
 		const double sigma = 5.0;
 
@@ -210,6 +210,7 @@ int main(int argc, char **argv)
 		logFile << "Total frames in the video: " << totalFrames << endl;
 		cout << "Total frames in the video: " << totalFrames << endl;
 
+		// If the frame is less than 19
 		if (totalFrames > 0 && totalFrames < windowSize)
 		{
 			cerr << "Error: Video is too short. Needs at least " << windowSize << " frames." << endl;
