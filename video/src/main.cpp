@@ -18,12 +18,14 @@ vector<double> applyGaussianWeightAverage(int windowSize, double sigma)
 	for (int i = 0; i < windowSize; ++i)
 	{
 		int distance = i - center;
+		// Gaussian formula
 		weights[i] = exp(-(distance * distance) / (2.0 * sigma * sigma));
 		sum += weights[i];
 	}
 
 	for (double &w : weights)
 	{
+		// Divide each weight by the total sum to normalize them (so their total becomes 1)
 		w /= sum;
 	}
 
