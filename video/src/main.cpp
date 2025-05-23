@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 			}
 
 			// Exit in any key press
-			if (waitKey(0) > 0)
+			if (waitKey(30) > 0)
 			{
 				break;
 			}
