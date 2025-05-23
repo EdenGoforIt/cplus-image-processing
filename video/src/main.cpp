@@ -141,12 +141,12 @@ Mat smoothHomographies(const deque<Mat> &matrixBuffer, const vector<double> &wei
 	return smoothed;
 }
 
-// We are picking up the middle frame as it's the best balanced frame
 Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
 												 const deque<Mat> &matrixBuffer,
 												 const vector<double> &weights,
 												 int borderSize, int padding)
 {
+	// We are picking up the middle frame as it's the best balanced frame
 	int centerIndex = frameBuffer.size() / 2;
 	Mat centerFrame = frameBuffer[centerIndex];
 	Mat centerH = matrixBuffer[centerIndex];
