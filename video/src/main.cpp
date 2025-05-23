@@ -141,6 +141,21 @@ Mat smoothHomographies(const deque<Mat> &matrixBuffer, const vector<double> &wei
 	return smoothed;
 }
 
+/// @brief Stabilizes the center frame from a given window of frames.
+/// This function performs the following steps:
+/// 1. Picks the middle frame from the buffer (most temporally balanced).
+/// 2. Applies Gaussian-smoothed cumulative homography to reduce jitter.
+/// 3. Adds a green border for visual alignment and assignment requirements.
+/// 4. Adds extra padding to prevent black edges during warping.
+/// 5. Warps the image using the correction homography.
+/// 6. Crops the result back to the original size (plus border).
+/// 7. Returns the stabilized frame.
+/// @param frameBuffer
+/// @param matrixBuffer
+/// @param weights
+/// @param borderSize
+/// @param padding
+/// @return
 Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
 												 const deque<Mat> &matrixBuffer,
 												 const vector<double> &weights,
@@ -149,8 +164,9 @@ Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
 	// We are picking up the middle frame as it's the best balanced frame
 	int centerIndex = frameBuffer.size() / 2;
 	Mat centerFrame = frameBuffer[centerIndex];
+	// Cumulative homography from the center to the first frame
 	Mat centerH = matrixBuffer[centerIndex];
-
+	// Smooth  all homography matrices in the buffer using Gaussian-weighted average
 	Mat smoothedH = smoothHomographies(matrixBuffer, weights);
 	Mat correctionH = smoothedH * centerH.inv();
 
@@ -158,12 +174,13 @@ Mat stabilizeMiddleFrame(const deque<Mat> &frameBuffer,
 	Mat borderedFrame;
 	copyMakeBorder(centerFrame, borderedFrame, borderSize, borderSize, borderSize, borderSize,
 								 BORDER_CONSTANT, Scalar(0, 255, 0));
-
+	// Add Green border
 	Mat paddedFrame;
 	copyMakeBorder(borderedFrame, paddedFrame, padding, padding, padding, padding,
 								 BORDER_CONSTANT, Scalar(0, 255, 0));
 
 	Mat adjustedH = correctionH.clone();
+	// Need to add padding to avoid the black edges after warping
 	Mat stabilizedPadded;
 	warpPerspective(paddedFrame, stabilizedPadded, adjustedH, paddedFrame.size());
 
