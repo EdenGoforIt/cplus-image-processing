@@ -59,7 +59,7 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 		return defaultH;
 	}
 
-	// Match the features
+	// Match the features using k nearest neighbor algorithm
 	Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create(DescriptorMatcher::FLANNBASED);
 	vector<vector<DMatch>> knnMatches;
 
@@ -211,7 +211,6 @@ int main(int argc, char **argv)
 		if (!cap.isOpened())
 		{
 			cerr << "[main] [Error]: Could not open the video file: " << argv[1] << endl;
-			cerr << "[main] [Debug]: Make sure file exists and OpenCV has required codecs" << endl;
 			return -1;
 		}
 
@@ -306,7 +305,7 @@ int main(int argc, char **argv)
 		logFile << "Video stabilization completed." << endl;
 		logFile.close();
 	}
-	catch (const std::exception &e)
+	catch (const exception &e)
 	{
 		logFile << "Exception: " << e.what() << endl;
 		cerr << "Exception: " << e.what() << endl;
