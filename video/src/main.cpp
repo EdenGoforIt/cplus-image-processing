@@ -1,12 +1,8 @@
-#include <iostream>
 #include <opencv2/opencv.hpp>
 #include <deque>
-#include <fstream>
 
 using namespace cv;
 using namespace std;
-
-ofstream logFile("log.txt");
 
 // Generate Gaussian weights for smoothing
 vector<double> applyGaussianWeightAverage(int windowSize, double sigma)
@@ -54,7 +50,6 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 	// For empty descriptors or not enough keypoints, return not transformed homography
 	if (desc1.empty() || desc2.empty() || kp1.size() < 10 || kp2.size() < 10)
 	{
-		logFile << "Not enough features detected" << endl;
 		cerr << "Not enough features detected" << endl;
 		return defaultH;
 	}
@@ -69,7 +64,6 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 	}
 	catch (cv::Exception &e)
 	{
-		logFile << "Exception in Matching features: " << e.what() << endl;
 		cerr << "Exception in Matching features: " << e.what() << endl;
 		return defaultH;
 	}
@@ -86,7 +80,6 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 	// If not enough good matches, return just the default homography
 	if (goodMatches.size() < 8)
 	{
-		logFile << "Not enough good matches: " << goodMatches.size() << endl;
 		cerr << "Not enough good matches: " << goodMatches.size() << endl;
 		return defaultH;
 	}
@@ -104,7 +97,6 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 
 	if (H.empty())
 	{
-		logFile << "Failed to find homography" << endl;
 		return defaultH;
 	}
 
@@ -112,7 +104,7 @@ Mat findHomographyBetweenFrames(const Mat &previousFrame, const Mat &currentFram
 	double det = H.at<double>(0, 0) * H.at<double>(1, 1) - H.at<double>(0, 1) * H.at<double>(1, 0);
 	if (fabs(det) < 0.1 || fabs(det) > 10)
 	{
-		logFile << "Homography determinant out of bounds: " << det << endl;
+		cerr << "Homography determinant out of bounds: " << det << endl;
 		return defaultH;
 	}
 
@@ -201,7 +193,7 @@ int main(int argc, char **argv)
 	{
 		if (argc != 2)
 		{
-			logFile << "Usage: ./src/main <video_file>" << endl;
+			cerr << "Usage: ./src/main <video_file>" << endl;
 			throw runtime_error("Usage: ./src/main <video_file>");
 		}
 
@@ -224,7 +216,6 @@ int main(int argc, char **argv)
 		int borderSize = 10;
 
 		int totalFrames = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT));
-		logFile << "Total frames in the video: " << totalFrames << endl;
 		cout << "Total frames in the video: " << totalFrames << endl;
 
 		// If the frame is less than 19
@@ -240,9 +231,9 @@ int main(int argc, char **argv)
 		deque<Mat> matrixBuffer;
 
 		namedWindow("Original", WINDOW_NORMAL);
-		namedWindow("Smoothed", WINDOW_NORMAL);
+		namedWindow("Stablized", WINDOW_NORMAL);
 
-		logFile << "Starting video stabilization..." << endl;
+		cout << "Starting video stabilization..." << endl;
 
 		while (true)
 		{
@@ -286,7 +277,7 @@ int main(int argc, char **argv)
 
 				// Display original and stabilized frames
 				imshow("Original", centerFrame);
-				imshow("Smoothed", stabilized);
+				imshow("Stablized", stabilized);
 
 				// Remove oldest frame and matrix
 				frameBuffer.pop_front();
@@ -302,14 +293,11 @@ int main(int argc, char **argv)
 
 		cap.release();
 		destroyAllWindows();
-		logFile << "Video stabilization completed." << endl;
-		logFile.close();
+		cout << "Video stabilization completed." << endl;
 	}
 	catch (const exception &e)
 	{
-		logFile << "Exception: " << e.what() << endl;
 		cerr << "Exception: " << e.what() << endl;
-		logFile.close();
 		return -1;
 	}
 
