@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 
 		// Compute LBP histogram for the test image
 		Mat result = Mat::zeros(testImg.size(), CV_8UC3);
-		int patchSize = 64;
-		const int K = 3; // kNN parameter
+		int patchSize = 32;
+		const int K = 20; // kNN parameter
 
 		for (int y = 0; y < testImg.rows - patchSize; y += patchSize)
 		{
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 				knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
 
 				// Distance-weighted voting
-				float weightedVotes[3] = {0};
+				float weightedVotes[K] = {0};
 				for (int i = 0; i < K; ++i)
 				{
 					float response = neighborResponses.at<float>(0, i);
