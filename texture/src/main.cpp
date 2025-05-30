@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
 		Mat features, labels;
 
-		// 1. Training phase
+		// 1. Load training data (feature extraction + labeling)
 		loadTrainingData("../data/grass", grassLabel, features, labels);
 		loadTrainingData("../data/cloud", cloudLabel, features, labels);
 		loadTrainingData("../data/sea", seaLabel, features, labels);
@@ -110,14 +110,14 @@ int main(int argc, char **argv)
 		logFile << "Training data loaded successfully." << endl;
 		cout << "Training data loaded successfully." << endl;
 
-		// Train Classifier
+		// 2. Train the k-NN classifier
 		Ptr<KNearest> knn = KNearest::create();
 		knn->train(features, ROW_SAMPLE, labels);
 
 		logFile << "Classifier trained successfully." << endl;
 		cout << "Classifier trained successfully." << endl;
 
-		// Load test image using command line argument
+		// 3. Load test image
 		string fullInputPath = "../data/" + string(argv[1]);
 		Mat testImg = imread(fullInputPath, IMREAD_GRAYSCALE);
 		Mat originalImage = imread(fullInputPath, IMREAD_COLOR);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 		logFile << "Test image loaded successfully: " << argv[1] << endl;
 		cout << "Test image loaded successfully: " << argv[1] << endl;
 
-		// Compute LBP histogram for the test image
+		// 4. Segment the image patch-by-patch
 		Mat result = Mat::zeros(testImg.size(), CV_8UC3);
 		int patchSize = 32;
 		const int K = 20; // kNN parameter
@@ -143,11 +143,12 @@ int main(int argc, char **argv)
 				Mat patch = testImg(Rect(x, y, patchSize, patchSize));
 				Mat hist = computeLBPHistogram(patch);
 
+				// 5. Use k-NN to find the K nearest training samples
 				Mat neighborResponses, neighborDistances;
 				Mat results;
 				knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
 
-				// Distance-weighted voting
+				// 6. Apply distance-weighted voting
 				float weightedVotes[K] = {0};
 				for (int i = 0; i < K; ++i)
 				{
@@ -163,6 +164,7 @@ int main(int argc, char **argv)
 						weightedVotes[2] += weight;
 				}
 
+				// 7. Assign final label and draw rectangle
 				int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 				Scalar color;
 				// 0 for grass, 1 for cloud, and 2 for sea
