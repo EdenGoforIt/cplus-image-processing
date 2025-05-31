@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 				// 7. Assign final label and draw rectangle
 				int finalClass = max_element(weightedVotes, weightedVotes + 3) - weightedVotes;
 				Scalar color;
-				// 0 for grass, 1 for cloud, and 2 for sea
+				// Labels: 0 for grass, 1 for cloud, and 2 for sea
 				if (finalClass == grassLabel)
 					color = Scalar(0, 255, 0); // Grass as green
 				else if (finalClass == cloudLabel)
