@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		// 4. Segment the image patch-by-patch
 		Mat result = Mat::zeros(testImg.size(), CV_8UC3);
 		int patchSize = 32;
-		const int K = 20; // kNN parameter
+		const int K = 3; // kNN parameter
 
 		for (int y = 0; y < testImg.rows - patchSize; y += patchSize)
 		{
