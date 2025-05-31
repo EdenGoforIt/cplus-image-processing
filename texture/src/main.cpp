@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	{
 		if (argc != 2)
 		{
-			cerr << "Usage: " << argv[0] << " <path_to_test_image>" << endl;
+			cerr << "Usage: " << argv[0] << " <path_to_test_image>. E.g. ./src/main case1.jpg" << endl;
 			return -1;
 		}
 
