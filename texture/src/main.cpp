@@ -9,8 +9,6 @@ using namespace cv;
 using namespace cv::ml;
 using namespace std;
 
-ofstream logFile("log.txt");
-
 const int grassLabel = 0;
 const int cloudLabel = 1;
 const int seaLabel = 2;
@@ -74,7 +72,7 @@ void loadTrainingData(const string &folder, int label, Mat &features, Mat &label
 		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
 		if (img.empty())
 		{
-			logFile << "Failed to load image: " << entry.path() << endl;
+			cerr << "Failed to load image: " << entry.path() << endl;
 			continue;
 		}
 
@@ -107,7 +105,6 @@ int main(int argc, char **argv)
 		loadTrainingData("../data/cloud", cloudLabel, features, labels);
 		loadTrainingData("../data/sea", seaLabel, features, labels);
 
-		logFile << "Training data loaded successfully." << endl;
 		cout << "Training data loaded successfully." << endl;
 
 		// 2. Train the k-NN classifier
@@ -191,9 +188,7 @@ int main(int argc, char **argv)
 	}
 	catch (const std::exception &e)
 	{
-		logFile << "Exception: " << e.what() << endl;
 		cerr << "Exception: " << e.what() << endl;
-		logFile.close();
 		return -1;
 	}
 
