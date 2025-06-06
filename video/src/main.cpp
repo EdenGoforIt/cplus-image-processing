@@ -191,20 +191,19 @@ int main(int argc, char **argv)
 {
 	try
 	{
-		if (argc != 2)
+		if (argc >= 3)
 		{
-			cerr << "Usage: ./src/main <video_file>" << endl;
-			throw runtime_error("Usage: ./src/main <video_file>");
+			cerr << "Usage for a video: ./src/main <video_file>" << endl;
+			cerr << "Usage for webcam: ./src/main" << endl;
+			return -1;
 		}
 
 		// Open video source
 		VideoCapture cap;
-		cap.open(argv[1]);
-		if (!cap.isOpened())
-		{
-			cerr << "[main] [Error]: Could not open the video file: " << argv[1] << endl;
-			return -1;
-		}
+		if (argc == 2)
+			cap.open(argv[1]);
+		else
+			cap.open(0);
 
 		// 19 frames (to start with as the requirement) are used to calculate the homography
 		const int windowSize = 19;
