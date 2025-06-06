@@ -24,6 +24,9 @@ uchar calculateLBP(const Mat &img, int x, int y)
 	uchar code = 0;
 
 	// Neighbors positions (clockwise starting from top-left)
+	// - - -
+	// - C -
+	// - - -
 	uchar topLeft = img.at<uchar>(y - 1, x - 1);
 	uchar top = img.at<uchar>(y - 1, x);
 	uchar topRight = img.at<uchar>(y - 1, x + 1);
@@ -35,14 +38,14 @@ uchar calculateLBP(const Mat &img, int x, int y)
 
 	// Build a binary code based on the neighbors' intensity compared to the center pixel
 	// Then convert into decimal value in the end
-	code |= (topLeft > center) << 7;
-	code |= (top > center) << 6;
-	code |= (topRight > center) << 5;
-	code |= (right > center) << 4;
-	code |= (bottomRight > center) << 3;
-	code |= (bottom > center) << 2;
-	code |= (bottomLeft > center) << 1;
-	code |= (left > center) << 0;
+	code |= (topLeft >= center) << 7;
+	code |= (top >= center) << 6;
+	code |= (topRight >= center) << 5;
+	code |= (right >= center) << 4;
+	code |= (bottomRight >= center) << 3;
+	code |= (bottom >= center) << 2;
+	code |= (bottomLeft >= center) << 1;
+	code |= (left >= center) << 0;
 
 	return code;
 }
@@ -50,12 +53,16 @@ uchar calculateLBP(const Mat &img, int x, int y)
 // Compute LBP histogram (256-bin) for a patch
 Mat computeLBPHistogram(const Mat &patch)
 {
+	// 256 bin
 	Mat hist = Mat::zeros(1, 256, CV_32F);
+	// Loop through each pixel
 	for (int y = 1; y < patch.rows - 1; ++y)
 	{
 		for (int x = 1; x < patch.cols - 1; ++x)
 		{
+			// Calculate lbp for the pixel
 			uchar lbp = calculateLBP(patch, x, y);
+			// Increment the histogram bin
 			hist.at<float>(0, lbp)++;
 		}
 	}
@@ -65,10 +72,10 @@ Mat computeLBPHistogram(const Mat &patch)
 
 void loadTrainingData(const string &folder, int label, Mat &features, Mat &labels)
 {
-	// Loop through the images in the folder
+	// 1. Loop through the images in the folder
 	for (const auto &entry : std::filesystem::directory_iterator(folder))
 	{
-		// Make the image grayscale
+		// 2. Make the image grayscale
 		Mat img = imread(entry.path().string(), IMREAD_GRAYSCALE);
 		if (img.empty())
 		{
@@ -77,8 +84,11 @@ void loadTrainingData(const string &folder, int label, Mat &features, Mat &label
 		}
 
 		Mat feature;
-		resize(img, feature, Size(64, 64)); // Resize to a fixed size
+		// 3. Resize to a fixed size
+		resize(img, feature, Size(64, 64));
+		// 4. Calculate the LBP histogram
 		Mat hist = computeLBPHistogram(img);
+
 		features.push_back(hist);
 
 		// const int grassLabel = 0;
@@ -111,7 +121,6 @@ int main(int argc, char **argv)
 		Ptr<KNearest> knn = KNearest::create();
 		knn->train(features, ROW_SAMPLE, labels);
 
-		logFile << "Classifier trained successfully." << endl;
 		cout << "Classifier trained successfully." << endl;
 
 		// 3. Load test image
@@ -121,11 +130,9 @@ int main(int argc, char **argv)
 
 		if (testImg.empty())
 		{
-			logFile << "Failed to load test image: " << argv[1] << endl;
 			cerr << "Failed to load test image: " << argv[1] << endl;
 			return -1;
 		}
-		logFile << "Test image loaded successfully: " << argv[1] << endl;
 		cout << "Test image loaded successfully: " << argv[1] << endl;
 
 		// 4. Segment the image patch-by-patch
@@ -181,10 +188,7 @@ int main(int argc, char **argv)
 		imshow("Original Image", originalImage);
 		waitKey(0);
 
-		logFile << "Segmentation completed successfully." << endl;
 		cout << "Segmentation completed successfully." << endl;
-
-		logFile.close();
 	}
 	catch (const std::exception &e)
 	{
