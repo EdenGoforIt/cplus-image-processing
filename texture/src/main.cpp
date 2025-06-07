@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 				Mat patch = testImg(Rect(x, y, patchSize, patchSize));
 				Mat hist = computeLBPHistogram(patch);
 
-				// 5. Use k-NN to find the K nearest training samples
+				// 5. Use k-NN to find the K nearest neighbors from the training set
 				Mat neighborResponses, neighborDistances;
 				Mat results;
 				knn->findNearest(hist, K, results, neighborResponses, neighborDistances);
